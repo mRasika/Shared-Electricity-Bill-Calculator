@@ -1,672 +1,810 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Calculate and split shared electricity bills among multiple shops fairly">
-  <title>Shared Electricity Bill Calculator</title>
-  
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Bootstrap Icons -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.ico">
-  
-  <style>
-    :root {
-      --primary-bg: #ffffff;
-      --secondary-bg: #f8f9fa;
-      --text-color: #212529;
-      --border-color: #dee2e6;
-      --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Calculate and split shared electricity bills among multiple shops fairly"
+    />
+    <title>Shared Electricity Bill Calculator</title>
 
-    body.dark-mode {
-      --primary-bg: #121212;
-      --secondary-bg: #1e1e1e;
-      --text-color: #f1f1f1;
-      --border-color: #444;
-      --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    }
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Bootstrap Icons -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="favicon.ico" />
 
-    body {
-      background-color: var(--primary-bg);
-      color: var(--text-color);
-      transition: background-color 0.3s, color 0.3s;
-    }
-
-    .form-control,
-    .form-select {
-      background-color: var(--primary-bg);
-      color: var(--text-color);
-      border-color: var(--border-color);
-      transition: background-color 0.3s, color 0.3s, border-color 0.3s;
-    }
-
-    .dark-mode .form-control,
-    .dark-mode .form-select {
-      background-color: var(--secondary-bg);
-      color: var(--text-color);
-      border-color: var(--border-color);
-    }
-
-    .dark-mode .form-control:focus,
-    .dark-mode .form-select:focus {
-      background-color: var(--secondary-bg);
-      color: var(--text-color);
-      border-color: #0d6efd;
-      box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-    }
-
-    .shop-block {
-      background: var(--secondary-bg);
-      padding: 1rem;
-      border-radius: 0.5rem;
-      margin-bottom: 1rem;
-      box-shadow: var(--card-shadow);
-      border: 1px solid var(--border-color);
-    }
-
-    .shop-input-group {
-      background: var(--secondary-bg);
-      padding: 1rem;
-      border-radius: 0.5rem;
-      margin-bottom: 0.75rem;
-      border: 1px solid var(--border-color);
-      position: relative;
-    }
-
-    .remove-shop-btn {
-      position: absolute;
-      top: 0.5rem;
-      right: 0.5rem;
-      padding: 0.25rem 0.5rem;
-      font-size: 0.75rem;
-    }
-
-    .logo {
-      max-width: 80px;
-      margin-bottom: 0.625rem;
-    }
-
-    .header-section {
-      padding: 1.5rem 0;
-      margin-bottom: 1rem;
-    }
-
-    .summary-card {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 1.5rem;
-      border-radius: 0.75rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .dark-mode .summary-card {
-      background: linear-gradient(135deg, #434343 0%, #000000 100%);
-    }
-
-    .form-switch .form-check-input {
-      cursor: pointer;
-    }
-
-    footer {
-      margin-top: 2.5rem;
-      padding: 1rem;
-      text-align: center;
-      font-size: 0.875rem;
-      color: #888;
-      border-top: 1px solid var(--border-color);
-    }
-
-    .dark-mode footer {
-      color: #aaa;
-    }
-
-    .btn-calculate {
-      padding: 0.75rem 2rem;
-      font-size: 1.1rem;
-    }
-
-    .validation-error {
-      color: #dc3545;
-      font-size: 0.875rem;
-      margin-top: 0.25rem;
-    }
-
-    .result-highlight {
-      font-size: 1.25rem;
-      font-weight: bold;
-      color: #198754;
-    }
-
-    .dark-mode .result-highlight {
-      color: #75b798;
-    }
-
-    @media print {
-      .no-print {
-        display: none !important;
+    <style>
+      :root {
+        --primary-bg: #ffffff;
+        --secondary-bg: #f8f9fa;
+        --text-color: #212529;
+        --border-color: #dee2e6;
+        --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       }
+
+      body.dark-mode {
+        --primary-bg: #121212;
+        --secondary-bg: #1e1e1e;
+        --text-color: #f1f1f1;
+        --border-color: #444;
+        --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      body {
+        background-color: var(--primary-bg);
+        color: var(--text-color);
+        transition: background-color 0.3s, color 0.3s;
+      }
+
+      .form-control,
+      .form-select {
+        background-color: var(--primary-bg);
+        color: var(--text-color);
+        border-color: var(--border-color);
+        transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+      }
+
+      .dark-mode .form-control,
+      .dark-mode .form-select {
+        background-color: var(--secondary-bg);
+        color: var(--text-color);
+        border-color: var(--border-color);
+      }
+
+      .dark-mode .form-control:focus,
+      .dark-mode .form-select:focus {
+        background-color: var(--secondary-bg);
+        color: var(--text-color);
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+      }
+
       .shop-block {
-        break-inside: avoid;
+        background: var(--secondary-bg);
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        box-shadow: var(--card-shadow);
+        border: 1px solid var(--border-color);
       }
-    }
-  </style>
-</head>
-<body>
-  <div class="container my-4">
-    <!-- Header Section -->
-    <header class="header-section text-center">
-      <img src="logo.png" alt="Electricity Calculator Logo" class="logo" onerror="this.style.display='none'">
-      <h1 id="title" class="h2"><i class="bi bi-lightning-charge"></i> Shared Electricity Bill Calculator</h1>
-    </header>
 
-    <!-- Settings Bar -->
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 no-print">
-      <div class="d-flex align-items-center gap-2">
-        <label for="languageSelect" class="form-label mb-0">
-          <i class="bi bi-globe"></i> <span data-i18n="language">Language</span>:
-        </label>
-        <select id="languageSelect" class="form-select form-select-sm w-auto" aria-label="Select language">
-          <option value="en">English</option>
-          <option value="si">සිංහල</option>
-        </select>
-      </div>
-      <div class="form-check form-switch">
-        <input class="form-check-input" type="checkbox" id="darkToggle" role="switch" aria-label="Toggle dark mode">
-        <label class="form-check-label" for="darkToggle">
-          <i class="bi bi-moon-stars"></i> <span data-i18n="darkMode">Dark Mode</span>
-        </label>
-      </div>
-    </div>
+      .shop-input-group {
+        background: var(--secondary-bg);
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 0.75rem;
+        border: 1px solid var(--border-color);
+        position: relative;
+      }
 
-    <!-- Main Form -->
-    <form id="calculatorForm" novalidate>
-      <!-- Bill Details -->
-      <div class="row g-3 mb-4">
-        <div class="col-md-6">
-          <label for="totalBill" class="form-label" data-i18n="totalBill">Total Bill (LKR)</label>
-          <div class="input-group">
-            <span class="input-group-text">Rs.</span>
-            <input type="number" id="totalBill" class="form-control" value="2400" min="0" step="0.01" required aria-describedby="totalBillHelp">
-          </div>
-          <div id="totalBillHelp" class="form-text" data-i18n="totalBillHelp">Enter the total electricity bill amount</div>
+      .remove-shop-btn {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+      }
+
+      .logo {
+        max-width: 80px;
+        margin-bottom: 0.625rem;
+      }
+
+      .header-section {
+        padding: 1.5rem 0;
+        margin-bottom: 1rem;
+      }
+
+      .summary-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .dark-mode .summary-card {
+        background: linear-gradient(135deg, #434343 0%, #000000 100%);
+      }
+
+      .form-switch .form-check-input {
+        cursor: pointer;
+      }
+
+      footer {
+        margin-top: 2.5rem;
+        padding: 1rem;
+        text-align: center;
+        font-size: 0.875rem;
+        color: #888;
+        border-top: 1px solid var(--border-color);
+      }
+
+      .dark-mode footer {
+        color: #aaa;
+      }
+
+      .btn-calculate {
+        padding: 0.75rem 2rem;
+        font-size: 1.1rem;
+      }
+
+      .validation-error {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+      }
+
+      .result-highlight {
+        font-size: 1.25rem;
+        font-weight: bold;
+        color: #198754;
+      }
+
+      .dark-mode .result-highlight {
+        color: #75b798;
+      }
+
+      @media print {
+        .no-print {
+          display: none !important;
+        }
+        .shop-block {
+          break-inside: avoid;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container my-4">
+      <!-- Header Section -->
+      <header class="header-section text-center">
+        <img
+          src="logo.png"
+          alt="Electricity Calculator Logo"
+          class="logo"
+          onerror="this.style.display='none'"
+        />
+        <h1 id="title" class="h2">
+          <i class="bi bi-lightning-charge"></i> Shared Electricity Bill
+          Calculator
+        </h1>
+      </header>
+
+      <!-- Settings Bar -->
+      <div
+        class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 no-print"
+      >
+        <div class="d-flex align-items-center gap-2">
+          <label for="languageSelect" class="form-label mb-0">
+            <i class="bi bi-globe"></i>
+            <span data-i18n="language">Language</span>:
+          </label>
+          <select
+            id="languageSelect"
+            class="form-select form-select-sm w-auto"
+            aria-label="Select language"
+          >
+            <option value="en">English</option>
+            <option value="si">සිංහල</option>
+          </select>
         </div>
-        <div class="col-md-6">
-          <label for="fixedCharge" class="form-label" data-i18n="fixedCharge">Fixed Charge (LKR)</label>
-          <div class="input-group">
-            <span class="input-group-text">Rs.</span>
-            <input type="number" id="fixedCharge" class="form-control" value="500" min="0" step="0.01" required aria-describedby="fixedChargeHelp">
-          </div>
-          <div id="fixedChargeHelp" class="form-text" data-i18n="fixedChargeHelp">Fixed charges from your bill</div>
+        <div class="form-check form-switch">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="darkToggle"
+            role="switch"
+            aria-label="Toggle dark mode"
+          />
+          <label class="form-check-label" for="darkToggle">
+            <i class="bi bi-moon-stars"></i>
+            <span data-i18n="darkMode">Dark Mode</span>
+          </label>
         </div>
       </div>
 
-      <!-- Split Method -->
-      <div class="mb-4">
-        <label for="splitMethod" class="form-label" data-i18n="splitMethod">Fixed Charge Split Method</label>
-        <select id="splitMethod" class="form-select" aria-describedby="splitMethodHelp">
-          <option value="equal" data-i18n="equal">Equal Split</option>
-          <option value="proportional" data-i18n="proportional">Proportional Split (by usage)</option>
-        </select>
-        <div id="splitMethodHelp" class="form-text" data-i18n="splitMethodHelp">Choose how to divide the fixed charges</div>
-      </div>
+      <!-- Main Form -->
+      <form id="calculatorForm" novalidate>
+        <!-- Bill Details -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label for="totalBill" class="form-label" data-i18n="totalBill"
+              >Total Bill (LKR)</label
+            >
+            <div class="input-group">
+              <span class="input-group-text">Rs.</span>
+              <input
+                type="number"
+                id="totalBill"
+                class="form-control"
+                value="2400"
+                min="0"
+                step="0.01"
+                required
+                aria-describedby="totalBillHelp"
+              />
+            </div>
+            <div id="totalBillHelp" class="form-text" data-i18n="totalBillHelp">
+              Enter the total electricity bill amount
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label for="fixedCharge" class="form-label" data-i18n="fixedCharge"
+              >Fixed Charge (LKR)</label
+            >
+            <div class="input-group">
+              <span class="input-group-text">Rs.</span>
+              <input
+                type="number"
+                id="fixedCharge"
+                class="form-control"
+                value="500"
+                min="0"
+                step="0.01"
+                required
+                aria-describedby="fixedChargeHelp"
+              />
+            </div>
+            <div
+              id="fixedChargeHelp"
+              class="form-text"
+              data-i18n="fixedChargeHelp"
+            >
+              Fixed charges from your bill
+            </div>
+          </div>
+        </div>
 
-      <!-- Shop Inputs -->
-      <div class="mb-3">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <h5 class="mb-0" data-i18n="shopUnits"><i class="bi bi-shop"></i> Shop Units</h5>
-          <button type="button" class="btn btn-outline-primary btn-sm" id="addShopBtn" data-i18n="addShop">
-            <i class="bi bi-plus-circle"></i> Add Shop
+        <!-- Split Method -->
+        <div class="mb-4">
+          <label for="splitMethod" class="form-label" data-i18n="splitMethod"
+            >Fixed Charge Split Method</label
+          >
+          <select
+            id="splitMethod"
+            class="form-select"
+            aria-describedby="splitMethodHelp"
+          >
+            <option value="equal" data-i18n="equal">Equal Split</option>
+            <option value="proportional" data-i18n="proportional">
+              Proportional Split (by usage)
+            </option>
+          </select>
+          <div
+            id="splitMethodHelp"
+            class="form-text"
+            data-i18n="splitMethodHelp"
+          >
+            Choose how to divide the fixed charges
+          </div>
+        </div>
+
+        <!-- Shop Inputs -->
+        <div class="mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0" data-i18n="shopUnits">
+              <i class="bi bi-shop"></i> Shop Units
+            </h5>
+            <button
+              type="button"
+              class="btn btn-outline-primary btn-sm"
+              id="addShopBtn"
+              data-i18n="addShop"
+            >
+              <i class="bi bi-plus-circle"></i> Add Shop
+            </button>
+          </div>
+          <div id="shopInputs"></div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex gap-2 flex-wrap mb-4 no-print">
+          <button
+            type="submit"
+            class="btn btn-success btn-calculate"
+            data-i18n="calculate"
+          >
+            <i class="bi bi-calculator"></i> Calculate
+          </button>
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            id="resetBtn"
+            data-i18n="reset"
+          >
+            <i class="bi bi-arrow-counterclockwise"></i> Reset
+          </button>
+          <button
+            type="button"
+            class="btn btn-outline-info"
+            id="printBtn"
+            data-i18n="print"
+          >
+            <i class="bi bi-printer"></i> Print
           </button>
         </div>
-        <div id="shopInputs"></div>
-      </div>
+      </form>
 
-      <!-- Action Buttons -->
-      <div class="d-flex gap-2 flex-wrap mb-4 no-print">
-        <button type="submit" class="btn btn-success btn-calculate" data-i18n="calculate">
-          <i class="bi bi-calculator"></i> Calculate
-        </button>
-        <button type="button" class="btn btn-outline-secondary" id="resetBtn" data-i18n="reset">
-          <i class="bi bi-arrow-counterclockwise"></i> Reset
-        </button>
-        <button type="button" class="btn btn-outline-info" id="printBtn" data-i18n="print">
-          <i class="bi bi-printer"></i> Print
-        </button>
-      </div>
-    </form>
+      <!-- Results Section -->
+      <div
+        id="output"
+        class="result mt-4"
+        role="region"
+        aria-live="polite"
+        aria-label="Calculation results"
+      ></div>
 
-    <!-- Results Section -->
-    <div id="output" class="result mt-4" role="region" aria-live="polite" aria-label="Calculation results"></div>
+      <!-- Footer -->
+      <footer>
+        <p class="mb-1">
+          Developed with <i class="bi bi-heart-fill text-danger"></i> by Rasika
+        </p>
+        <a
+          href="https://github.com/mRasika"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <i class="bi bi-github"></i> GitHub Profile
+        </a>
+      </footer>
+    </div>
 
-    <!-- Footer -->
-    <footer>
-      <p class="mb-1">Developed with <i class="bi bi-heart-fill text-danger"></i> by Rasika</p>
-      <a href="https://github.com/mRasika" target="_blank" rel="noopener noreferrer">
-        <i class="bi bi-github"></i> GitHub Profile
-      </a>
-    </footer>
-  </div>
+    <script>
+      // ============================================
+      // Application State & Configuration
+      // ============================================
+      const APP_CONFIG = {
+        currency: "LKR",
+        currencySymbol: "Rs.",
+        minShops: 1,
+        maxShops: 20,
+        defaultShops: [
+          { name: "Shop 1", units: 58 },
+          { name: "Shop 2", units: 17 },
+          { name: "Shop 3", units: 1 },
+        ],
+        storageKeys: {
+          darkMode: "electricityCalc_darkMode",
+          language: "electricityCalc_language",
+          lastCalculation: "electricityCalc_lastData",
+        },
+      };
 
-  <script>
-    // ============================================
-    // Application State & Configuration
-    // ============================================
-    const APP_CONFIG = {
-      currency: 'LKR',
-      currencySymbol: 'Rs.',
-      minShops: 1,
-      maxShops: 20,
-      defaultShops: [
-        { name: 'Shop 1', units: 58 },
-        { name: 'Shop 2', units: 17 },
-        { name: 'Shop 3', units: 1 }
-      ],
-      storageKeys: {
-        darkMode: 'electricityCalc_darkMode',
-        language: 'electricityCalc_language',
-        lastCalculation: 'electricityCalc_lastData'
-      }
-    };
+      const translations = {
+        en: {
+          title: "Shared Electricity Bill Calculator",
+          language: "Language",
+          darkMode: "Dark Mode",
+          totalBill: "Total Bill (LKR)",
+          totalBillHelp: "Enter the total electricity bill amount",
+          fixedCharge: "Fixed Charge (LKR)",
+          fixedChargeHelp: "Fixed charges from your bill",
+          splitMethod: "Fixed Charge Split Method",
+          splitMethodHelp: "Choose how to divide the fixed charges",
+          equal: "Equal Split",
+          proportional: "Proportional Split (by usage)",
+          shopUnits: "Shop Units",
+          addShop: "Add Shop",
+          calculate: "Calculate",
+          reset: "Reset",
+          print: "Print",
+          shopName: "Shop",
+          units: "Units",
+          remove: "Remove",
+          totalUnits: "Total Units",
+          energyCostPerUnit: "Energy Cost per Unit",
+          unitsConsumed: "Units Consumed",
+          energyCost: "Energy Cost",
+          fixedChargeLabel: "Fixed Charge",
+          totalBillLabel: "Total Bill",
+          summary: "Summary",
+          errorInvalidBill: "Please enter a valid bill amount",
+          errorNoUnits: "Please enter units for at least one shop",
+          errorFixedCharge: "Fixed charge cannot exceed total bill",
+        },
+        si: {
+          title: "බෙදාගත් විදුලි බිල්පත් ගණනය",
+          language: "භාෂාව",
+          darkMode: "අඳුරු මාදිලිය",
+          totalBill: "මුළු බිල (රු.)",
+          totalBillHelp: "මුළු විදුලි බිල්පත් මුදල ඇතුළත් කරන්න",
+          fixedCharge: "ස්ථිර ගාස්තුව (රු.)",
+          fixedChargeHelp: "ඔබගේ බිල්පතේ ස්ථිර ගාස්තු",
+          splitMethod: "ස්ථිර ගාස්තු බෙදීමේ ක්‍රමය",
+          splitMethodHelp: "ස්ථිර ගාස්තු බෙදන ආකාරය තෝරන්න",
+          equal: "සමාන බෙදීම",
+          proportional: "අනුපාතික බෙදීම (භාවිතය අනුව)",
+          shopUnits: "වෙළඳසැල් ඒකක",
+          addShop: "වෙළඳසැලක් එක් කරන්න",
+          calculate: "ගණනය කරන්න",
+          reset: "යළි පිහිටුවන්න",
+          print: "මුද්‍රණය",
+          shopName: "වෙළඳසැල",
+          units: "ඒකක",
+          remove: "ඉවත් කරන්න",
+          totalUnits: "මුළු ඒකක",
+          energyCostPerUnit: "ඒකකයකට බලශක්ති පිරිවැය",
+          unitsConsumed: "පරිභෝජිත ඒකක",
+          energyCost: "බලශක්ති පිරිවැය",
+          fixedChargeLabel: "ස්ථිර ගාස්තුව",
+          totalBillLabel: "මුළු බිල",
+          summary: "සාරාංශය",
+          errorInvalidBill: "කරුණාකර වලංගු බිල්පත් මුදලක් ඇතුළත් කරන්න",
+          errorNoUnits: "අවම වශයෙන් එක් වෙළඳසැලකට ඒකක ඇතුළත් කරන්න",
+          errorFixedCharge: "ස්ථිර ගාස්තුව මුළු බිල්පතට වඩා වැඩි විය නොහැක",
+        },
+      };
 
-    const translations = {
-      en: {
-        title: 'Shared Electricity Bill Calculator',
-        language: 'Language',
-        darkMode: 'Dark Mode',
-        totalBill: 'Total Bill (LKR)',
-        totalBillHelp: 'Enter the total electricity bill amount',
-        fixedCharge: 'Fixed Charge (LKR)',
-        fixedChargeHelp: 'Fixed charges from your bill',
-        splitMethod: 'Fixed Charge Split Method',
-        splitMethodHelp: 'Choose how to divide the fixed charges',
-        equal: 'Equal Split',
-        proportional: 'Proportional Split (by usage)',
-        shopUnits: 'Shop Units',
-        addShop: 'Add Shop',
-        calculate: 'Calculate',
-        reset: 'Reset',
-        print: 'Print',
-        shopName: 'Shop',
-        units: 'Units',
-        remove: 'Remove',
-        totalUnits: 'Total Units',
-        energyCostPerUnit: 'Energy Cost per Unit',
-        unitsConsumed: 'Units Consumed',
-        energyCost: 'Energy Cost',
-        fixedChargeLabel: 'Fixed Charge',
-        totalBillLabel: 'Total Bill',
-        summary: 'Summary',
-        errorInvalidBill: 'Please enter a valid bill amount',
-        errorNoUnits: 'Please enter units for at least one shop',
-        errorFixedCharge: 'Fixed charge cannot exceed total bill'
-      },
-      si: {
-        title: 'බෙදාගත් විදුලි බිල්පත් ගණනය',
-        language: 'භාෂාව',
-        darkMode: 'අඳුරු මාදිලිය',
-        totalBill: 'මුළු බිල (රු.)',
-        totalBillHelp: 'මුළු විදුලි බිල්පත් මුදල ඇතුළත් කරන්න',
-        fixedCharge: 'ස්ථිර ගාස්තුව (රු.)',
-        fixedChargeHelp: 'ඔබගේ බිල්පතේ ස්ථිර ගාස්තු',
-        splitMethod: 'ස්ථිර ගාස්තු බෙදීමේ ක්‍රමය',
-        splitMethodHelp: 'ස්ථිර ගාස්තු බෙදන ආකාරය තෝරන්න',
-        equal: 'සමාන බෙදීම',
-        proportional: 'අනුපාතික බෙදීම (භාවිතය අනුව)',
-        shopUnits: 'වෙළඳසැල් ඒකක',
-        addShop: 'වෙළඳසැලක් එක් කරන්න',
-        calculate: 'ගණනය කරන්න',
-        reset: 'යළි පිහිටුවන්න',
-        print: 'මුද්‍රණය',
-        shopName: 'වෙළඳසැල',
-        units: 'ඒකක',
-        remove: 'ඉවත් කරන්න',
-        totalUnits: 'මුළු ඒකක',
-        energyCostPerUnit: 'ඒකකයකට බලශක්ති පිරිවැය',
-        unitsConsumed: 'පරිභෝජිත ඒකක',
-        energyCost: 'බලශක්ති පිරිවැය',
-        fixedChargeLabel: 'ස්ථිර ගාස්තුව',
-        totalBillLabel: 'මුළු බිල',
-        summary: 'සාරාංශය',
-        errorInvalidBill: 'කරුණාකර වලංගු බිල්පත් මුදලක් ඇතුළත් කරන්න',
-        errorNoUnits: 'අවම වශයෙන් එක් වෙළඳසැලකට ඒකක ඇතුළත් කරන්න',
-        errorFixedCharge: 'ස්ථිර ගාස්තුව මුළු බිල්පතට වඩා වැඩි විය නොහැක'
-      }
-    };
+      let currentLanguage = "en";
+      let shopCount = 0;
 
-    let currentLanguage = 'en';
-    let shopCount = 0;
+      // ============================================
+      // Utility Functions
+      // ============================================
+      const $ = (selector) => document.querySelector(selector);
+      const $$ = (selector) => document.querySelectorAll(selector);
 
-    // ============================================
-    // Utility Functions
-    // ============================================
-    const $ = (selector) => document.querySelector(selector);
-    const $$ = (selector) => document.querySelectorAll(selector);
+      const t = (key) =>
+        translations[currentLanguage]?.[key] || translations["en"][key] || key;
 
-    const t = (key) => translations[currentLanguage]?.[key] || translations['en'][key] || key;
+      const formatCurrency = (amount) => {
+        return new Intl.NumberFormat("en-LK", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(amount);
+      };
 
-    const formatCurrency = (amount) => {
-      return new Intl.NumberFormat('en-LK', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      }).format(amount);
-    };
+      const saveToStorage = (key, value) => {
+        try {
+          localStorage.setItem(key, JSON.stringify(value));
+        } catch (e) {
+          console.warn("LocalStorage not available");
+        }
+      };
 
-    const saveToStorage = (key, value) => {
-      try {
-        localStorage.setItem(key, JSON.stringify(value));
-      } catch (e) {
-        console.warn('LocalStorage not available');
-      }
-    };
+      const loadFromStorage = (key, defaultValue = null) => {
+        try {
+          const item = localStorage.getItem(key);
+          return item ? JSON.parse(item) : defaultValue;
+        } catch (e) {
+          return defaultValue;
+        }
+      };
 
-    const loadFromStorage = (key, defaultValue = null) => {
-      try {
-        const item = localStorage.getItem(key);
-        return item ? JSON.parse(item) : defaultValue;
-      } catch (e) {
-        return defaultValue;
-      }
-    };
-
-    // ============================================
-    // Shop Management
-    // ============================================
-    const createShopInput = (shopNumber, units = 0, name = '') => {
-      const shopName = name || `${t('shopName')} ${shopNumber}`;
-      const div = document.createElement('div');
-      div.className = 'shop-input-group';
-      div.dataset.shopId = shopNumber;
-      div.innerHTML = `
+      // ============================================
+      // Shop Management
+      // ============================================
+      const createShopInput = (shopNumber, units = 0, name = "") => {
+        const shopName = name || `${t("shopName")} ${shopNumber}`;
+        const div = document.createElement("div");
+        div.className = "shop-input-group";
+        div.dataset.shopId = shopNumber;
+        div.innerHTML = `
         <button type="button" class="btn btn-outline-danger btn-sm remove-shop-btn" 
                 onclick="removeShop(${shopNumber})" 
-                aria-label="${t('remove')} ${shopName}"
-                ${shopCount <= APP_CONFIG.minShops ? 'disabled' : ''}>
+                aria-label="${t("remove")} ${shopName}"
+                ${shopCount <= APP_CONFIG.minShops ? "disabled" : ""}>
           <i class="bi bi-x-lg"></i>
         </button>
         <div class="row g-2">
           <div class="col-sm-5">
-            <label class="form-label small">${t('shopName')}</label>
+            <label class="form-label small">${t("shopName")}</label>
             <input type="text" class="form-control form-control-sm shop-name" 
-                   value="${shopName}" placeholder="${t('shopName')}">
+                   value="${shopName}" placeholder="${t("shopName")}">
           </div>
           <div class="col-sm-7">
-            <label class="form-label small">${t('units')}</label>
+            <label class="form-label small">${t("units")}</label>
             <input type="number" class="form-control shop-unit" 
                    value="${units}" min="0" step="0.01" 
                    placeholder="0" required>
           </div>
         </div>
       `;
-      return div;
-    };
+        return div;
+      };
 
-    const addShop = (units = 0, name = '') => {
-      if (shopCount >= APP_CONFIG.maxShops) {
-        alert(`Maximum ${APP_CONFIG.maxShops} shops allowed`);
-        return;
-      }
-      shopCount++;
-      const shopInput = createShopInput(shopCount, units, name);
-      $('#shopInputs').appendChild(shopInput);
-      updateRemoveButtons();
-    };
-
-    const removeShop = (shopId) => {
-      const shopElement = $(`[data-shop-id="${shopId}"]`);
-      if (shopElement && shopCount > APP_CONFIG.minShops) {
-        shopElement.remove();
-        shopCount--;
-        renumberShops();
-        updateRemoveButtons();
-      }
-    };
-
-    const renumberShops = () => {
-      const shops = $$('.shop-input-group');
-      shops.forEach((shop, index) => {
-        const newNumber = index + 1;
-        shop.dataset.shopId = newNumber;
-        const nameInput = shop.querySelector('.shop-name');
-        if (nameInput.value.startsWith(t('shopName')) || nameInput.value.match(/^Shop \d+$/)) {
-          nameInput.value = `${t('shopName')} ${newNumber}`;
+      const addShop = (units = 0, name = "") => {
+        if (shopCount >= APP_CONFIG.maxShops) {
+          alert(`Maximum ${APP_CONFIG.maxShops} shops allowed`);
+          return;
         }
-        const removeBtn = shop.querySelector('.remove-shop-btn');
-        removeBtn.setAttribute('onclick', `removeShop(${newNumber})`);
-      });
-      shopCount = shops.length;
-    };
+        shopCount++;
+        const shopInput = createShopInput(shopCount, units, name);
+        $("#shopInputs").appendChild(shopInput);
+        updateRemoveButtons();
+      };
 
-    const updateRemoveButtons = () => {
-      const removeButtons = $$('.remove-shop-btn');
-      removeButtons.forEach(btn => {
-        btn.disabled = shopCount <= APP_CONFIG.minShops;
-      });
-    };
+      const removeShop = (shopId) => {
+        const shopElement = $(`[data-shop-id="${shopId}"]`);
+        if (shopElement && shopCount > APP_CONFIG.minShops) {
+          shopElement.remove();
+          shopCount--;
+          renumberShops();
+          updateRemoveButtons();
+        }
+      };
 
-    // ============================================
-    // Calculation Logic
-    // ============================================
-    const validateInputs = () => {
-      const totalBill = parseFloat($('#totalBill').value) || 0;
-      const fixedCharge = parseFloat($('#fixedCharge').value) || 0;
-      const units = [...$$('.shop-unit')].map(input => parseFloat(input.value) || 0);
-      const totalUnits = units.reduce((sum, u) => sum + u, 0);
+      const renumberShops = () => {
+        const shops = $$(".shop-input-group");
+        shops.forEach((shop, index) => {
+          const newNumber = index + 1;
+          shop.dataset.shopId = newNumber;
+          const nameInput = shop.querySelector(".shop-name");
+          if (
+            nameInput.value.startsWith(t("shopName")) ||
+            nameInput.value.match(/^Shop \d+$/)
+          ) {
+            nameInput.value = `${t("shopName")} ${newNumber}`;
+          }
+          const removeBtn = shop.querySelector(".remove-shop-btn");
+          removeBtn.setAttribute("onclick", `removeShop(${newNumber})`);
+        });
+        shopCount = shops.length;
+      };
 
-      if (totalBill <= 0) {
-        return { valid: false, error: t('errorInvalidBill') };
-      }
-      if (fixedCharge > totalBill) {
-        return { valid: false, error: t('errorFixedCharge') };
-      }
-      if (totalUnits <= 0) {
-        return { valid: false, error: t('errorNoUnits') };
-      }
+      const updateRemoveButtons = () => {
+        const removeButtons = $$(".remove-shop-btn");
+        removeButtons.forEach((btn) => {
+          btn.disabled = shopCount <= APP_CONFIG.minShops;
+        });
+      };
 
-      return { valid: true };
-    };
+      // ============================================
+      // Calculation Logic
+      // ============================================
+      const validateInputs = () => {
+        const totalBill = parseFloat($("#totalBill").value) || 0;
+        const fixedCharge = parseFloat($("#fixedCharge").value) || 0;
+        const units = [...$$(".shop-unit")].map(
+          (input) => parseFloat(input.value) || 0
+        );
+        const totalUnits = units.reduce((sum, u) => sum + u, 0);
 
-    const calculate = () => {
-      const validation = validateInputs();
-      if (!validation.valid) {
-        showError(validation.error);
-        return;
-      }
+        if (totalBill <= 0) {
+          return { valid: false, error: t("errorInvalidBill") };
+        }
+        if (fixedCharge > totalBill) {
+          return { valid: false, error: t("errorFixedCharge") };
+        }
+        if (totalUnits <= 0) {
+          return { valid: false, error: t("errorNoUnits") };
+        }
 
-      const totalBill = parseFloat($('#totalBill').value);
-      const fixedCharge = parseFloat($('#fixedCharge').value);
-      const splitMethod = $('#splitMethod').value;
+        return { valid: true };
+      };
 
-      const shopInputs = $$('.shop-input-group');
-      const shops = [...shopInputs].map(shop => ({
-        name: shop.querySelector('.shop-name').value || 'Shop',
-        units: parseFloat(shop.querySelector('.shop-unit').value) || 0
-      }));
+      const calculate = () => {
+        const validation = validateInputs();
+        if (!validation.valid) {
+          showError(validation.error);
+          return;
+        }
 
-      const totalUnits = shops.reduce((sum, shop) => sum + shop.units, 0);
-      const energyCost = totalBill - fixedCharge;
-      const unitCost = energyCost / totalUnits;
-      const numShops = shops.length;
+        const totalBill = parseFloat($("#totalBill").value);
+        const fixedCharge = parseFloat($("#fixedCharge").value);
+        const splitMethod = $("#splitMethod").value;
 
-      let grandTotal = 0;
+        const shopInputs = $$(".shop-input-group");
+        const shops = [...shopInputs].map((shop) => ({
+          name: shop.querySelector(".shop-name").value || "Shop",
+          units: parseFloat(shop.querySelector(".shop-unit").value) || 0,
+        }));
 
-      // Build results
-      let outputHTML = `
+        const totalUnits = shops.reduce((sum, shop) => sum + shop.units, 0);
+        const energyCost = totalBill - fixedCharge;
+        const unitCost = energyCost / totalUnits;
+        const numShops = shops.length;
+
+        let grandTotal = 0;
+
+        // Build results
+        let outputHTML = `
         <div class="summary-card">
-          <h4><i class="bi bi-bar-chart-fill"></i> ${t('summary')}</h4>
+          <h4><i class="bi bi-bar-chart-fill"></i> ${t("summary")}</h4>
           <div class="row">
             <div class="col-6">
-              <div class="small opacity-75">${t('totalUnits')}</div>
+              <div class="small opacity-75">${t("totalUnits")}</div>
               <div class="h5 mb-0">${formatCurrency(totalUnits)}</div>
             </div>
             <div class="col-6">
-              <div class="small opacity-75">${t('energyCostPerUnit')}</div>
-              <div class="h5 mb-0">${APP_CONFIG.currencySymbol} ${formatCurrency(unitCost)}</div>
+              <div class="small opacity-75">${t("energyCostPerUnit")}</div>
+              <div class="h5 mb-0">${
+                APP_CONFIG.currencySymbol
+              } ${formatCurrency(unitCost)}</div>
             </div>
           </div>
         </div>
       `;
 
-      shops.forEach((shop, i) => {
-        const shopEnergyCost = shop.units * unitCost;
-        let shopFixedCharge = 0;
+        shops.forEach((shop, i) => {
+          const shopEnergyCost = shop.units * unitCost;
+          let shopFixedCharge = 0;
 
-        if (splitMethod === 'equal') {
-          shopFixedCharge = fixedCharge / numShops;
-        } else {
-          shopFixedCharge = (shop.units / totalUnits) * fixedCharge;
-        }
+          if (splitMethod === "equal") {
+            shopFixedCharge = fixedCharge / numShops;
+          } else {
+            shopFixedCharge = (shop.units / totalUnits) * fixedCharge;
+          }
 
-        const shopTotal = shopEnergyCost + shopFixedCharge;
-        grandTotal += shopTotal;
+          const shopTotal = shopEnergyCost + shopFixedCharge;
+          grandTotal += shopTotal;
 
-        outputHTML += `
+          outputHTML += `
           <div class="shop-block">
             <h5><i class="bi bi-shop"></i> ${shop.name}</h5>
             <div class="row g-2 small">
-              <div class="col-6">${t('unitsConsumed')}:</div>
+              <div class="col-6">${t("unitsConsumed")}:</div>
               <div class="col-6 text-end">${formatCurrency(shop.units)}</div>
               
-              <div class="col-6">${t('energyCost')}:</div>
-              <div class="col-6 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(shopEnergyCost)}</div>
+              <div class="col-6">${t("energyCost")}:</div>
+              <div class="col-6 text-end">${
+                APP_CONFIG.currencySymbol
+              } ${formatCurrency(shopEnergyCost)}</div>
               
-              <div class="col-6">${t('fixedChargeLabel')} (${splitMethod === 'equal' ? t('equal') : t('proportional')}):</div>
-              <div class="col-6 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(shopFixedCharge)}</div>
+              <div class="col-6">${t("fixedChargeLabel")} (${
+            splitMethod === "equal" ? t("equal") : t("proportional")
+          }):</div>
+              <div class="col-6 text-end">${
+                APP_CONFIG.currencySymbol
+              } ${formatCurrency(shopFixedCharge)}</div>
               
               <div class="col-12"><hr class="my-2"></div>
               
-              <div class="col-6"><strong>${t('totalBillLabel')}:</strong></div>
-              <div class="col-6 text-end result-highlight">${APP_CONFIG.currencySymbol} ${formatCurrency(shopTotal)}</div>
+              <div class="col-6"><strong>${t("totalBillLabel")}:</strong></div>
+              <div class="col-6 text-end result-highlight">${
+                APP_CONFIG.currencySymbol
+              } ${formatCurrency(shopTotal)}</div>
             </div>
           </div>
         `;
-      });
+        });
 
-      // Verification row
-      outputHTML += `
+        // Verification row
+        outputHTML += `
         <div class="alert alert-info mt-3">
           <i class="bi bi-check-circle"></i> 
-          <strong>Verification:</strong> Sum of all bills = ${APP_CONFIG.currencySymbol} ${formatCurrency(grandTotal)} 
+          <strong>Verification:</strong> Sum of all bills = ${
+            APP_CONFIG.currencySymbol
+          } ${formatCurrency(grandTotal)} 
           (Original: ${APP_CONFIG.currencySymbol} ${formatCurrency(totalBill)})
         </div>
       `;
 
-      $('#output').innerHTML = outputHTML;
+        $("#output").innerHTML = outputHTML;
 
-      // Save last calculation
-      saveToStorage(APP_CONFIG.storageKeys.lastCalculation, {
-        totalBill,
-        fixedCharge,
-        splitMethod,
-        shops
-      });
-    };
+        // Save last calculation
+        saveToStorage(APP_CONFIG.storageKeys.lastCalculation, {
+          totalBill,
+          fixedCharge,
+          splitMethod,
+          shops,
+        });
+      };
 
-    const showError = (message) => {
-      $('#output').innerHTML = `
+      const showError = (message) => {
+        $("#output").innerHTML = `
         <div class="alert alert-danger">
           <i class="bi bi-exclamation-triangle"></i> ${message}
         </div>
       `;
-    };
+      };
 
-    // ============================================
-    // UI Functions
-    // ============================================
-    const toggleDarkMode = () => {
-      const isDark = $('#darkToggle').checked;
-      document.body.classList.toggle('dark-mode', isDark);
-      saveToStorage(APP_CONFIG.storageKeys.darkMode, isDark);
-    };
+      // ============================================
+      // UI Functions
+      // ============================================
+      const toggleDarkMode = () => {
+        const isDark = $("#darkToggle").checked;
+        document.body.classList.toggle("dark-mode", isDark);
+        saveToStorage(APP_CONFIG.storageKeys.darkMode, isDark);
+      };
 
-    const setLanguage = () => {
-      currentLanguage = $('#languageSelect').value;
-      saveToStorage(APP_CONFIG.storageKeys.language, currentLanguage);
-      updateUILanguage();
-    };
+      const setLanguage = () => {
+        currentLanguage = $("#languageSelect").value;
+        saveToStorage(APP_CONFIG.storageKeys.language, currentLanguage);
+        updateUILanguage();
+      };
 
-    const updateUILanguage = () => {
-      // Update title
-      $('#title').innerHTML = `<i class="bi bi-lightning-charge"></i> ${t('title')}`;
+      const updateUILanguage = () => {
+        // Update title
+        $("#title").innerHTML = `<i class="bi bi-lightning-charge"></i> ${t(
+          "title"
+        )}`;
 
-      // Update all elements with data-i18n attribute
-      $$('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-          el.placeholder = t(key);
-        } else if (el.tagName === 'OPTION') {
-          el.textContent = t(key);
-        } else {
-          // Preserve icons
-          const icon = el.querySelector('i');
-          if (icon) {
-            el.innerHTML = icon.outerHTML + ' ' + t(key);
-          } else {
+        // Update all elements with data-i18n attribute
+        $$("[data-i18n]").forEach((el) => {
+          const key = el.getAttribute("data-i18n");
+          if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
+            el.placeholder = t(key);
+          } else if (el.tagName === "OPTION") {
             el.textContent = t(key);
+          } else {
+            // Preserve icons
+            const icon = el.querySelector("i");
+            if (icon) {
+              el.innerHTML = icon.outerHTML + " " + t(key);
+            } else {
+              el.textContent = t(key);
+            }
           }
-        }
-      });
+        });
 
-      // Update shop labels
-      renumberShops();
-    };
+        // Update shop labels
+        renumberShops();
+      };
 
-    const resetForm = () => {
-      $('#totalBill').value = 2400;
-      $('#fixedCharge').value = 500;
-      $('#splitMethod').value = 'equal';
-      $('#output').innerHTML = '';
-      
-      // Reset shops
-      $('#shopInputs').innerHTML = '';
-      shopCount = 0;
-      APP_CONFIG.defaultShops.forEach(shop => addShop(shop.units, shop.name));
-    };
+      const resetForm = () => {
+        $("#totalBill").value = 2400;
+        $("#fixedCharge").value = 500;
+        $("#splitMethod").value = "equal";
+        $("#output").innerHTML = "";
 
-    // ============================================
-    // Initialization
-    // ============================================
-    const init = () => {
-      // Load saved preferences
-      const savedDarkMode = loadFromStorage(APP_CONFIG.storageKeys.darkMode, false);
-      const savedLanguage = loadFromStorage(APP_CONFIG.storageKeys.language, 'en');
+        // Reset shops
+        $("#shopInputs").innerHTML = "";
+        shopCount = 0;
+        APP_CONFIG.defaultShops.forEach((shop) =>
+          addShop(shop.units, shop.name)
+        );
+      };
 
-      // Apply dark mode
-      $('#darkToggle').checked = savedDarkMode;
-      document.body.classList.toggle('dark-mode', savedDarkMode);
+      // ============================================
+      // Initialization
+      // ============================================
+      const init = () => {
+        // Load saved preferences
+        const savedDarkMode = loadFromStorage(
+          APP_CONFIG.storageKeys.darkMode,
+          false
+        );
+        const savedLanguage = loadFromStorage(
+          APP_CONFIG.storageKeys.language,
+          "en"
+        );
 
-      // Apply language
-      currentLanguage = savedLanguage;
-      $('#languageSelect').value = savedLanguage;
+        // Apply dark mode
+        $("#darkToggle").checked = savedDarkMode;
+        document.body.classList.toggle("dark-mode", savedDarkMode);
 
-      // Initialize default shops
-      APP_CONFIG.defaultShops.forEach(shop => addShop(shop.units, shop.name));
+        // Apply language
+        currentLanguage = savedLanguage;
+        $("#languageSelect").value = savedLanguage;
 
-      // Update UI text
-      updateUILanguage();
+        // Initialize default shops
+        APP_CONFIG.defaultShops.forEach((shop) =>
+          addShop(shop.units, shop.name)
+        );
 
-      // Event listeners
-      $('#darkToggle').addEventListener('change', toggleDarkMode);
-      $('#languageSelect').addEventListener('change', setLanguage);
-      $('#addShopBtn').addEventListener('click', () => addShop());
-      $('#resetBtn').addEventListener('click', resetForm);
-      $('#printBtn').addEventListener('click', () => window.print());
+        // Update UI text
+        updateUILanguage();
 
-      // Form submission
-      $('#calculatorForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        calculate();
-      });
+        // Event listeners
+        $("#darkToggle").addEventListener("change", toggleDarkMode);
+        $("#languageSelect").addEventListener("change", setLanguage);
+        $("#addShopBtn").addEventListener("click", () => addShop());
+        $("#resetBtn").addEventListener("click", resetForm);
+        $("#printBtn").addEventListener("click", () => window.print());
 
-      // Make removeShop available globally
-      window.removeShop = removeShop;
-    };
+        // Form submission
+        $("#calculatorForm").addEventListener("submit", (e) => {
+          e.preventDefault();
+          calculate();
+        });
 
-    // Start the app
-    document.addEventListener('DOMContentLoaded', init);
-  </script>
-</body>
+        // Make removeShop available globally
+        window.removeShop = removeShop;
+      };
+
+      // Start the app
+      document.addEventListener("DOMContentLoaded", init);
+    </script>
+  </body>
 </html>
