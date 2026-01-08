@@ -10,6 +10,8 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Bootstrap Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- html2pdf.js for PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.ico">
   
@@ -153,6 +155,86 @@
         break-inside: avoid;
       }
     }
+
+    /* Export buttons styling */
+    .export-buttons {
+      display: none;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px dashed var(--border-color);
+    }
+
+    .export-buttons.show {
+      display: flex;
+    }
+
+    .btn-whatsapp {
+      background-color: #25D366;
+      border-color: #25D366;
+      color: white;
+    }
+
+    .btn-whatsapp:hover {
+      background-color: #128C7E;
+      border-color: #128C7E;
+      color: white;
+    }
+
+    .btn-pdf {
+      background-color: #DC3545;
+      border-color: #DC3545;
+      color: white;
+    }
+
+    .btn-pdf:hover {
+      background-color: #BB2D3B;
+      border-color: #BB2D3B;
+      color: white;
+    }
+
+    /* PDF export specific styling */
+    .pdf-header {
+      text-align: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #667eea;
+    }
+
+    .pdf-footer {
+      text-align: center;
+      margin-top: 1rem;
+      padding-top: 0.5rem;
+      font-size: 0.8rem;
+      color: #666;
+      border-top: 1px solid #ddd;
+    }
+
+    /* Loading spinner for PDF */
+    .btn-loading {
+      position: relative;
+      pointer-events: none;
+    }
+
+    .btn-loading::after {
+      content: '';
+      position: absolute;
+      width: 1rem;
+      height: 1rem;
+      top: 50%;
+      left: 50%;
+      margin-left: -0.5rem;
+      margin-top: -0.5rem;
+      border: 2px solid transparent;
+      border-top-color: currentColor;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -242,6 +324,19 @@
     <!-- Results Section -->
     <div id="output" class="result mt-4" role="region" aria-live="polite" aria-label="Calculation results"></div>
 
+    <!-- Export Buttons (shown after calculation) -->
+    <div id="exportButtons" class="export-buttons no-print">
+      <button type="button" class="btn btn-pdf" id="exportPdfBtn" data-i18n="exportPdf">
+        <i class="bi bi-file-earmark-pdf"></i> Export PDF
+      </button>
+      <button type="button" class="btn btn-whatsapp" id="shareWhatsappBtn" data-i18n="shareWhatsapp">
+        <i class="bi bi-whatsapp"></i> Share on WhatsApp
+      </button>
+      <button type="button" class="btn btn-outline-primary" id="copyTextBtn" data-i18n="copyText">
+        <i class="bi bi-clipboard"></i> Copy Text
+      </button>
+    </div>
+
     <!-- Footer -->
     <footer>
       <p class="mb-1">Developed with <i class="bi bi-heart-fill text-danger"></i> by Rasika</p>
@@ -302,7 +397,15 @@
         summary: 'Summary',
         errorInvalidBill: 'Please enter a valid bill amount',
         errorNoUnits: 'Please enter units for at least one shop',
-        errorFixedCharge: 'Fixed charge cannot exceed total bill'
+        errorFixedCharge: 'Fixed charge cannot exceed total bill',
+        exportPdf: 'Export PDF',
+        shareWhatsapp: 'Share on WhatsApp',
+        copyText: 'Copy Text',
+        copied: 'Copied!',
+        generating: 'Generating...',
+        billSummary: 'Electricity Bill Summary',
+        generatedOn: 'Generated on',
+        verification: 'Verification'
       },
       si: {
         title: 'බෙදාගත් විදුලි බිල්පත් ගණනය',
@@ -333,7 +436,15 @@
         summary: 'සාරාංශය',
         errorInvalidBill: 'කරුණාකර වලංගු බිල්පත් මුදලක් ඇතුළත් කරන්න',
         errorNoUnits: 'අවම වශයෙන් එක් වෙළඳසැලකට ඒකක ඇතුළත් කරන්න',
-        errorFixedCharge: 'ස්ථිර ගාස්තුව මුළු බිල්පතට වඩා වැඩි විය නොහැක'
+        errorFixedCharge: 'ස්ථිර ගාස්තුව මුළු බිල්පතට වඩා වැඩි විය නොහැක',
+        exportPdf: 'PDF බාගන්න',
+        shareWhatsapp: 'WhatsApp හරහා බෙදාගන්න',
+        copyText: 'පිටපත් කරන්න',
+        copied: 'පිටපත් කළා!',
+        generating: 'සකස් වෙමින්...',
+        billSummary: 'විදුලි බිල්පත් සාරාංශය',
+        generatedOn: 'සකස් කළ දිනය',
+        verification: 'සත්‍යාපනය'
       }
     };
 
@@ -549,12 +660,36 @@
       outputHTML += `
         <div class="alert alert-info mt-3">
           <i class="bi bi-check-circle"></i> 
-          <strong>Verification:</strong> Sum of all bills = ${APP_CONFIG.currencySymbol} ${formatCurrency(grandTotal)} 
+          <strong>${t('verification')}:</strong> Sum of all bills = ${APP_CONFIG.currencySymbol} ${formatCurrency(grandTotal)} 
           (Original: ${APP_CONFIG.currencySymbol} ${formatCurrency(totalBill)})
         </div>
       `;
 
       $('#output').innerHTML = outputHTML;
+
+      // Store calculation data for export
+      lastCalculationData = {
+        totalBill,
+        fixedCharge,
+        splitMethod,
+        totalUnits,
+        unitCost,
+        shops: shops.map((shop, i) => {
+          const shopEnergyCost = shop.units * unitCost;
+          let shopFixedCharge = splitMethod === 'equal' 
+            ? fixedCharge / numShops 
+            : (shop.units / totalUnits) * fixedCharge;
+          return {
+            ...shop,
+            energyCost: shopEnergyCost,
+            fixedCharge: shopFixedCharge,
+            total: shopEnergyCost + shopFixedCharge
+          };
+        })
+      };
+
+      // Show export buttons
+      $('#exportButtons').classList.add('show');
 
       // Save last calculation
       saveToStorage(APP_CONFIG.storageKeys.lastCalculation, {
@@ -571,6 +706,200 @@
           <i class="bi bi-exclamation-triangle"></i> ${message}
         </div>
       `;
+      $('#exportButtons').classList.remove('show');
+    };
+
+    // Store last calculation data for export
+    let lastCalculationData = null;
+
+    // ============================================
+    // Export Functions
+    // ============================================
+    const generateTextSummary = () => {
+      if (!lastCalculationData) return '';
+      
+      const { totalBill, fixedCharge, splitMethod, shops, totalUnits, unitCost } = lastCalculationData;
+      const date = new Date().toLocaleDateString('en-GB');
+      
+      let text = `⚡ ${t('billSummary')}\n`;
+      text += `📅 ${t('generatedOn')}: ${date}\n`;
+      text += `${'─'.repeat(30)}\n\n`;
+      text += `💰 ${t('totalBill')}: ${APP_CONFIG.currencySymbol} ${formatCurrency(totalBill)}\n`;
+      text += `📊 ${t('totalUnits')}: ${formatCurrency(totalUnits)}\n`;
+      text += `💵 ${t('energyCostPerUnit')}: ${APP_CONFIG.currencySymbol} ${formatCurrency(unitCost)}\n`;
+      text += `🔧 ${t('fixedCharge')}: ${APP_CONFIG.currencySymbol} ${formatCurrency(fixedCharge)}\n`;
+      text += `📋 ${t('splitMethod')}: ${splitMethod === 'equal' ? t('equal') : t('proportional')}\n\n`;
+      text += `${'─'.repeat(30)}\n`;
+      
+      shops.forEach((shop, i) => {
+        text += `\n🏪 ${shop.name}\n`;
+        text += `   ${t('unitsConsumed')}: ${formatCurrency(shop.units)}\n`;
+        text += `   ${t('energyCost')}: ${APP_CONFIG.currencySymbol} ${formatCurrency(shop.energyCost)}\n`;
+        text += `   ${t('fixedChargeLabel')}: ${APP_CONFIG.currencySymbol} ${formatCurrency(shop.fixedCharge)}\n`;
+        text += `   ✅ ${t('totalBillLabel')}: ${APP_CONFIG.currencySymbol} ${formatCurrency(shop.total)}\n`;
+      });
+      
+      text += `\n${'─'.repeat(30)}\n`;
+      text += `✓ ${t('verification')}: ${APP_CONFIG.currencySymbol} ${formatCurrency(shops.reduce((sum, s) => sum + s.total, 0))}\n`;
+      
+      return text;
+    };
+
+    const shareOnWhatsApp = () => {
+      const text = generateTextSummary();
+      if (!text) {
+        alert('Please calculate first!');
+        return;
+      }
+      
+      const encodedText = encodeURIComponent(text);
+      const whatsappUrl = `https://wa.me/?text=${encodedText}`;
+      window.open(whatsappUrl, '_blank');
+    };
+
+    const copyToClipboard = async () => {
+      const text = generateTextSummary();
+      if (!text) {
+        alert('Please calculate first!');
+        return;
+      }
+      
+      try {
+        await navigator.clipboard.writeText(text);
+        const btn = $('#copyTextBtn');
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = `<i class="bi bi-check"></i> ${t('copied')}`;
+        btn.classList.add('btn-success');
+        btn.classList.remove('btn-outline-primary');
+        
+        setTimeout(() => {
+          btn.innerHTML = originalHTML;
+          btn.classList.remove('btn-success');
+          btn.classList.add('btn-outline-primary');
+        }, 2000);
+      } catch (err) {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert(t('copied'));
+      }
+    };
+
+    const exportToPDF = async () => {
+      if (!lastCalculationData) {
+        alert('Please calculate first!');
+        return;
+      }
+
+      const btn = $('#exportPdfBtn');
+      const originalHTML = btn.innerHTML;
+      btn.innerHTML = `<i class="bi bi-hourglass-split"></i> ${t('generating')}`;
+      btn.classList.add('btn-loading');
+      btn.disabled = true;
+
+      try {
+        const { totalBill, fixedCharge, splitMethod, shops, totalUnits, unitCost } = lastCalculationData;
+        const date = new Date().toLocaleDateString('en-GB');
+        
+        // Create PDF content
+        const pdfContent = document.createElement('div');
+        pdfContent.style.padding = '20px';
+        pdfContent.style.fontFamily = 'Arial, sans-serif';
+        pdfContent.style.backgroundColor = '#ffffff';
+        pdfContent.style.color = '#000000';
+        
+        pdfContent.innerHTML = `
+          <div class="pdf-header">
+            <h2 style="color: #667eea; margin: 0;">⚡ ${t('billSummary')}</h2>
+            <p style="color: #666; margin: 5px 0;">${t('generatedOn')}: ${date}</p>
+          </div>
+          
+          <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            <h4 style="margin-top: 0; color: #333;">${t('summary')}</h4>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 8px 0;">${t('totalBill')}:</td>
+                <td style="text-align: right; font-weight: bold;">${APP_CONFIG.currencySymbol} ${formatCurrency(totalBill)}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;">${t('fixedCharge')}:</td>
+                <td style="text-align: right;">${APP_CONFIG.currencySymbol} ${formatCurrency(fixedCharge)}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;">${t('totalUnits')}:</td>
+                <td style="text-align: right;">${formatCurrency(totalUnits)}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;">${t('energyCostPerUnit')}:</td>
+                <td style="text-align: right;">${APP_CONFIG.currencySymbol} ${formatCurrency(unitCost)}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;">${t('splitMethod')}:</td>
+                <td style="text-align: right;">${splitMethod === 'equal' ? t('equal') : t('proportional')}</td>
+              </tr>
+            </table>
+          </div>
+          
+          <h4 style="color: #333;">🏪 ${t('shopUnits')}</h4>
+          ${shops.map((shop, i) => `
+            <div style="background: #fff; border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+              <h5 style="margin-top: 0; color: #667eea;">${shop.name}</h5>
+              <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                <tr>
+                  <td style="padding: 5px 0;">${t('unitsConsumed')}:</td>
+                  <td style="text-align: right;">${formatCurrency(shop.units)}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 5px 0;">${t('energyCost')}:</td>
+                  <td style="text-align: right;">${APP_CONFIG.currencySymbol} ${formatCurrency(shop.energyCost)}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 5px 0;">${t('fixedChargeLabel')}:</td>
+                  <td style="text-align: right;">${APP_CONFIG.currencySymbol} ${formatCurrency(shop.fixedCharge)}</td>
+                </tr>
+                <tr style="border-top: 1px solid #ddd;">
+                  <td style="padding: 8px 0; font-weight: bold;">${t('totalBillLabel')}:</td>
+                  <td style="text-align: right; font-weight: bold; color: #198754; font-size: 16px;">${APP_CONFIG.currencySymbol} ${formatCurrency(shop.total)}</td>
+                </tr>
+              </table>
+            </div>
+          `).join('')}
+          
+          <div style="background: #d1e7ff; padding: 10px 15px; border-radius: 8px; margin-top: 15px;">
+            <strong>✓ ${t('verification')}:</strong> 
+            ${APP_CONFIG.currencySymbol} ${formatCurrency(shops.reduce((sum, s) => sum + s.total, 0))}
+          </div>
+          
+          <div class="pdf-footer">
+            <p style="margin: 0;">Generated by Shared Electricity Bill Calculator</p>
+            <p style="margin: 5px 0 0 0; font-size: 0.7rem;">github.com/mRasika</p>
+          </div>
+        `;
+
+        // PDF options
+        const opt = {
+          margin: 10,
+          filename: `electricity-bill-${date.replace(/\//g, '-')}.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        // Generate PDF
+        await html2pdf().set(opt).from(pdfContent).save();
+        
+      } catch (error) {
+        console.error('PDF generation error:', error);
+        alert('Error generating PDF. Please try again.');
+      } finally {
+        btn.innerHTML = originalHTML;
+        btn.classList.remove('btn-loading');
+        btn.disabled = false;
+      }
     };
 
     // ============================================
@@ -619,6 +948,8 @@
       $('#fixedCharge').value = 500;
       $('#splitMethod').value = 'equal';
       $('#output').innerHTML = '';
+      $('#exportButtons').classList.remove('show');
+      lastCalculationData = null;
       
       // Reset shops
       $('#shopInputs').innerHTML = '';
@@ -654,6 +985,11 @@
       $('#addShopBtn').addEventListener('click', () => addShop());
       $('#resetBtn').addEventListener('click', resetForm);
       $('#printBtn').addEventListener('click', () => window.print());
+      
+      // Export button listeners
+      $('#exportPdfBtn').addEventListener('click', exportToPDF);
+      $('#shareWhatsappBtn').addEventListener('click', shareOnWhatsApp);
+      $('#copyTextBtn').addEventListener('click', copyToClipboard);
 
       // Form submission
       $('#calculatorForm').addEventListener('submit', (e) => {
