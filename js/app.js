@@ -30,8 +30,8 @@ const translations = {
     title: 'Shared Electricity Bill Calculator',
     language: 'Language',
     darkMode: 'Dark Mode',
-    totalBill: 'Total Bill (LKR)',
-    totalBillHelp: 'Enter the total electricity bill amount',
+    totalCharge: 'Total Charge (LKR)',
+    totalChargeHelp: 'Total charge amount from your bill (includes fixed charge)',
     fixedCharge: 'Fixed Charge (LKR)',
     fixedChargeHelp: 'Fixed charges from your bill',
     ssclTax: 'SSCL Tax (LKR)',
@@ -51,24 +51,25 @@ const translations = {
     units: 'Units',
     remove: 'Remove',
     totalUnits: 'Total Units',
-    energyCostPerUnit: 'Energy Cost per Unit',
+    chargeForUnits: 'Charge for Units',
+    energyCostPerUnit: 'Cost per Unit',
     unitsConsumed: 'Units Consumed',
     energyCost: 'Energy Cost',
     fixedChargeLabel: 'Fixed Charge',
     ssclTaxLabel: 'SSCL Tax',
-    totalBillLabel: 'Total Bill',
+    totalBillLabel: 'Shop Total',
+    grandTotal: 'Grand Total',
     summary: 'Summary',
-    errorInvalidBill: 'Please enter a valid bill amount',
+    errorInvalidCharge: 'Please enter a valid total charge amount',
     errorNoUnits: 'Please enter units for at least one shop',
-    errorFixedCharge: 'Fixed charge cannot exceed total bill',
-    errorChargesExceedBill: 'Fixed charge + SSCL Tax cannot exceed total bill'
+    errorFixedChargeExceeds: 'Fixed charge cannot exceed total charge'
   },
   si: {
     title: 'බෙදාගත් විදුලි බිල්පත් ගණනය',
     language: 'භාෂාව',
     darkMode: 'අඳුරු මාදිලිය',
-    totalBill: 'මුළු බිල (රු.)',
-    totalBillHelp: 'මුළු විදුලි බිල්පත් මුදල ඇතුළත් කරන්න',
+    totalCharge: 'මුළු ගාස්තුව (රු.)',
+    totalChargeHelp: 'ඔබගේ බිල්පතේ මුළු ගාස්තු මුදල (ස්ථිර ගාස්තු ඇතුළුව)',
     fixedCharge: 'ස්ථිර ගාස්තුව (රු.)',
     fixedChargeHelp: 'ඔබගේ බිල්පතේ ස්ථිර ගාස්තු',
     ssclTax: 'SSCL බදු (රු.)',
@@ -88,17 +89,18 @@ const translations = {
     units: 'ඒකක',
     remove: 'ඉවත් කරන්න',
     totalUnits: 'මුළු ඒකක',
-    energyCostPerUnit: 'ඒකකයකට බලශක්ති පිරිවැය',
+    chargeForUnits: 'ඒකක සඳහා ගාස්තුව',
+    energyCostPerUnit: 'ඒකකයකට පිරිවැය',
     unitsConsumed: 'පරිභෝජිත ඒකක',
     energyCost: 'බලශක්ති පිරිවැය',
     fixedChargeLabel: 'ස්ථිර ගාස්තුව',
     ssclTaxLabel: 'SSCL බදු',
-    totalBillLabel: 'මුළු බිල',
+    totalBillLabel: 'වෙළඳසැල් එකතුව',
+    grandTotal: 'මුළු එකතුව',
     summary: 'සාරාංශය',
-    errorInvalidBill: 'කරුණාකර වලංගු බිල්පත් මුදලක් ඇතුළත් කරන්න',
+    errorInvalidCharge: 'කරුණාකර වලංගු මුළු ගාස්තු මුදලක් ඇතුළත් කරන්න',
     errorNoUnits: 'අවම වශයෙන් එක් වෙළඳසැලකට ඒකක ඇතුළත් කරන්න',
-    errorFixedCharge: 'ස්ථිර ගාස්තුව මුළු බිල්පතට වඩා වැඩි විය නොහැක',
-    errorChargesExceedBill: 'ස්ථිර ගාස්තුව + SSCL බදු මුළු බිල්පතට වඩා වැඩි විය නොහැක'
+    errorFixedChargeExceeds: 'ස්ථිර ගාස්තුව මුළු ගාස්තුවට වඩා වැඩි විය නොහැක'
   }
 };
 
@@ -219,17 +221,16 @@ const updateRemoveButtons = () => {
 // Calculation Logic
 // ============================================
 const validateInputs = () => {
-  const totalBill = parseFloat($('#totalBill').value) || 0;
+  const totalCharge = parseFloat($('#totalCharge').value) || 0;
   const fixedCharge = parseFloat($('#fixedCharge').value) || 0;
-  const ssclTax = parseFloat($('#ssclTax').value) || 0;
   const units = [...$$('.shop-unit')].map(input => parseFloat(input.value) || 0);
   const totalUnits = units.reduce((sum, u) => sum + u, 0);
 
-  if (totalBill <= 0) {
-    return { valid: false, error: t('errorInvalidBill') };
+  if (totalCharge <= 0) {
+    return { valid: false, error: t('errorInvalidCharge') };
   }
-  if ((fixedCharge + ssclTax) > totalBill) {
-    return { valid: false, error: t('errorChargesExceedBill') };
+  if (fixedCharge > totalCharge) {
+    return { valid: false, error: t('errorFixedChargeExceeds') };
   }
   if (totalUnits <= 0) {
     return { valid: false, error: t('errorNoUnits') };
@@ -245,7 +246,7 @@ const calculate = () => {
     return;
   }
 
-  const totalBill = parseFloat($('#totalBill').value);
+  const totalCharge = parseFloat($('#totalCharge').value);
   const fixedCharge = parseFloat($('#fixedCharge').value);
   const ssclTax = parseFloat($('#ssclTax').value) || 0;
   
@@ -260,9 +261,14 @@ const calculate = () => {
   }));
 
   const totalUnits = shops.reduce((sum, shop) => sum + shop.units, 0);
-  const energyCost = totalBill - fixedCharge - ssclTax;
-  const unitCost = energyCost / totalUnits;
+  
+  // New Formula: Charge for Units = Total Charge - Fixed Charge
+  const chargeForUnits = totalCharge - fixedCharge;
+  const unitCost = chargeForUnits / totalUnits;
   const numShops = shops.length;
+  
+  // Total Bill = Total Charge + SSCL Tax
+  const totalBill = totalCharge + ssclTax;
 
   let grandTotal = 0;
 
@@ -270,12 +276,16 @@ const calculate = () => {
   let outputHTML = `
     <div class="summary-card">
       <h4><i class="bi bi-bar-chart-fill"></i> ${t('summary')}</h4>
-      <div class="row">
-        <div class="col-6">
+      <div class="row g-2">
+        <div class="col-4">
           <div class="small opacity-75">${t('totalUnits')}</div>
           <div class="h5 mb-0">${formatCurrency(totalUnits)}</div>
         </div>
-        <div class="col-6">
+        <div class="col-4">
+          <div class="small opacity-75">${t('chargeForUnits')}</div>
+          <div class="h5 mb-0">${APP_CONFIG.currencySymbol} ${formatCurrency(chargeForUnits)}</div>
+        </div>
+        <div class="col-4">
           <div class="small opacity-75">${t('energyCostPerUnit')}</div>
           <div class="h5 mb-0">${APP_CONFIG.currencySymbol} ${formatCurrency(unitCost)}</div>
         </div>
@@ -334,8 +344,8 @@ const calculate = () => {
   outputHTML += `
     <div class="alert alert-info mt-3">
       <i class="bi bi-check-circle"></i> 
-      <strong>Verification:</strong> Sum of all bills = ${APP_CONFIG.currencySymbol} ${formatCurrency(grandTotal)} 
-      (Original: ${APP_CONFIG.currencySymbol} ${formatCurrency(totalBill)})
+      <strong>Verification:</strong> Sum of all shop bills = ${APP_CONFIG.currencySymbol} ${formatCurrency(grandTotal)} 
+      (${t('grandTotal')}: ${APP_CONFIG.currencySymbol} ${formatCurrency(totalBill)})
     </div>
   `;
 
@@ -343,12 +353,11 @@ const calculate = () => {
 
   // Save last calculation
   saveToStorage(APP_CONFIG.storageKeys.lastCalculation, {
-    totalBill,
+    totalCharge,
     fixedCharge,
     ssclTax,
     splitMethod,
     ssclSplitMethod,
-    splitMethod,
     shops
   });
 };
