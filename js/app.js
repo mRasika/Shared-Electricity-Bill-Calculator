@@ -445,9 +445,11 @@ const updateUILanguage = () => {
 };
 
 const resetForm = () => {
-  $("#totalBill").value = 2400;
+  $("#totalCharge").value = 2350;
   $("#fixedCharge").value = 500;
+  $("#ssclTax").value = 60.26;
   $("#splitMethod").value = "equal";
+  $("#ssclSplitMethod").value = "equal";
   $("#output").innerHTML = "";
 
   // Reset shops
