@@ -1,86 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Calculate and split shared electricity bills among multiple shops fairly">
-  <title>Shared Electricity Bill Calculator</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Calculate and split shared electricity bills among multiple shops fairly"
+    />
+    <title>Shared Electricity Bill Calculator</title>
 
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Bootstrap Icons -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-  <!-- Custom Styles -->
-  <link rel="stylesheet" href="css/styles.css">
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png">
-</head>
-<body>
-  <div class="container my-4">
-    <!-- Header Section -->
-    <header class="header-section text-center">
-      <img src="logo.png" alt="Electricity Calculator Logo" class="logo" onerror="this.style.display='none'">
-      <h1 id="title" class="h2">
-        <i class="bi bi-lightning-charge"></i> Shared Electricity Bill Calculator
-      </h1>
-    </header>
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Bootstrap Icons -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="css/styles.css" />
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="favicon.png" />
+  </head>
+  <body>
+    <div class="container my-4">
+      <!-- Header Section -->
+      <header class="header-section text-center">
+        <img
+          src="logo.png"
+          alt="Electricity Calculator Logo"
+          class="logo"
+          onerror="this.style.display='none'"
+        />
+        <h1 id="title" class="h2">
+          <i class="bi bi-lightning-charge"></i> Shared Electricity Bill
+          Calculator
+        </h1>
+      </header>
 
-    <!-- Settings Bar -->
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 no-print">
-      <div class="d-flex align-items-center gap-2">
-        <label for="languageSelect" class="form-label mb-0">
-          <i class="bi bi-globe"></i>
-          <span data-i18n="language">Language</span>:
-        </label>
-        <select id="languageSelect" class="form-select form-select-sm w-auto" aria-label="Select language">
-          <option value="en">English</option>
-          <option value="si">සිංහල</option>
-        </select>
-      </div>
-      <div class="form-check form-switch">
-        <input class="form-check-input" type="checkbox" id="darkToggle" role="switch" aria-label="Toggle dark mode">
-        <label class="form-check-label" for="darkToggle">
-          <i class="bi bi-moon-stars"></i>
-          <span data-i18n="darkMode">Dark Mode</span>
-        </label>
-      </div>
-    </div>
-
-    <!-- Main Form -->
-    <form id="calculatorForm" novalidate>
-      <!-- Bill Details -->
-      <div class="row g-3 mb-4">
-        <div class="col-md-6">
-          <label for="totalCharge" class="form-label" data-i18n="totalCharge">Total Charge (LKR)</label>
-          <div class="input-group">
-            <span class="input-group-text">Rs.</span>
-            <input type="number" id="totalCharge" class="form-control" value="2350" min="0" step="0.01" required aria-describedby="totalChargeHelp">
-          </div>
-          <div id="totalChargeHelp" class="form-text" data-i18n="totalChargeHelp">Total charge amount from your bill (includes fixed charge)</div>
+      <!-- Settings Bar -->
+      <div
+        class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 no-print"
+      >
+        <div class="d-flex align-items-center gap-2">
+          <label for="languageSelect" class="form-label mb-0">
+            <i class="bi bi-globe"></i>
+            <span data-i18n="language">Language</span>:
+          </label>
+          <select
+            id="languageSelect"
+            class="form-select form-select-sm w-auto"
+            aria-label="Select language"
+          >
+            <option value="en">English</option>
+            <option value="si">සිංහල</option>
+          </select>
         </div>
-        <div class="col-md-6">
-          <label for="fixedCharge" class="form-label" data-i18n="fixedCharge">Fixed Charge (LKR)</label>
-          <div class="input-group">
-            <span class="input-group-text">Rs.</span>
-            <input type="number" id="fixedCharge" class="form-control" value="500" min="0" step="0.01" required aria-describedby="fixedChargeHelp">
-          </div>
-          <div id="fixedChargeHelp" class="form-text" data-i18n="fixedChargeHelp">Fixed charges from your bill</div>
-        </div>
-      </div>
-
-      <!-- SSCL Tax -->
-      <div class="row g-3 mb-4">
-        <div class="col-md-6">
-          <label for="ssclTax" class="form-label" data-i18n="ssclTax">SSCL Tax (LKR)</label>
-          <div class="input-group">
-            <span class="input-group-text">Rs.</span>
-            <input type="number" id="ssclTax" class="form-control" value="60.26" min="0" step="0.01" required aria-describedby="ssclTaxHelp">
-          </div>
-          <div id="ssclTaxHelp" class="form-text" data-i18n="ssclTaxHelp">SSCL tax amount from your bill</div>
+        <div class="form-check form-switch">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="darkToggle"
+            role="switch"
+            aria-label="Toggle dark mode"
+          />
+          <label class="form-check-label" for="darkToggle">
+            <i class="bi bi-moon-stars"></i>
+            <span data-i18n="darkMode">Dark Mode</span>
+          </label>
         </div>
       </div>
 
-      <!-- ============================================
+      <!-- Main Form -->
+      <form id="calculatorForm" novalidate>
+        <!-- Bill Details -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label for="totalCharge" class="form-label" data-i18n="totalCharge"
+              >Total Charge (LKR)</label
+            >
+            <div class="input-group">
+              <span class="input-group-text">Rs.</span>
+              <input
+                type="number"
+                id="totalCharge"
+                class="form-control"
+                value="2350"
+                min="0"
+                step="0.01"
+                required
+                aria-describedby="totalChargeHelp"
+              />
+            </div>
+            <div
+              id="totalChargeHelp"
+              class="form-text"
+              data-i18n="totalChargeHelp"
+            >
+              Total charge amount from your bill (includes fixed charge)
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label for="fixedCharge" class="form-label" data-i18n="fixedCharge"
+              >Fixed Charge (LKR)</label
+            >
+            <div class="input-group">
+              <span class="input-group-text">Rs.</span>
+              <input
+                type="number"
+                id="fixedCharge"
+                class="form-control"
+                value="500"
+                min="0"
+                step="0.01"
+                required
+                aria-describedby="fixedChargeHelp"
+              />
+            </div>
+            <div
+              id="fixedChargeHelp"
+              class="form-text"
+              data-i18n="fixedChargeHelp"
+            >
+              Fixed charges from your bill
+            </div>
+          </div>
+        </div>
+
+        <!-- SSCL Tax -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label for="ssclTax" class="form-label" data-i18n="ssclTax"
+              >SSCL Tax (LKR)</label
+            >
+            <div class="input-group">
+              <span class="input-group-text">Rs.</span>
+              <input
+                type="number"
+                id="ssclTax"
+                class="form-control"
+                value="60.26"
+                min="0"
+                step="0.01"
+                required
+                aria-describedby="ssclTaxHelp"
+              />
+            </div>
+            <div id="ssclTaxHelp" class="form-text" data-i18n="ssclTaxHelp">
+              SSCL tax amount from your bill
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================
            PROPORTIONAL SPLIT OPTIONS (HIDDEN)
            ============================================
            
@@ -104,71 +178,133 @@
            
            This means shops with higher consumption pay larger share of charges.
            ============================================ -->
-      
-      <!-- Fixed Charge Split Method (Hidden) -->
-      <div class="mb-4" style="display:none">
-        <label for="splitMethod" class="form-label" data-i18n="splitMethod">Fixed Charge Split Method</label>
-        <select id="splitMethod" class="form-select" aria-describedby="splitMethodHelp">
-          <option value="equal" data-i18n="equal">Equal Split</option>
-          <option value="proportional" data-i18n="proportional">Proportional Split (by usage)</option>
-        </select>
-        <div id="splitMethodHelp" class="form-text" data-i18n="splitMethodHelp">Choose how to divide the fixed charges</div>
-      </div>
 
-      <!-- SSCL Tax Split Method (Hidden) -->
-      <div class="mb-4" style="display:none">
-        <label for="ssclSplitMethod" class="form-label" data-i18n="ssclSplitMethod">SSCL Tax Split Method</label>
-        <select id="ssclSplitMethod" class="form-select" aria-describedby="ssclSplitMethodHelp">
-          <option value="equal" data-i18n="equal">Equal Split</option>
-          <option value="proportional" data-i18n="proportional">Proportional Split (by usage)</option>
-        </select>
-        <div id="ssclSplitMethodHelp" class="form-text" data-i18n="ssclSplitMethodHelp">Choose how to divide the SSCL tax</div>
-      </div>
+        <!-- Fixed Charge Split Method (Hidden) -->
+        <div class="mb-4" style="display: none">
+          <label for="splitMethod" class="form-label" data-i18n="splitMethod"
+            >Fixed Charge Split Method</label
+          >
+          <select
+            id="splitMethod"
+            class="form-select"
+            aria-describedby="splitMethodHelp"
+          >
+            <option value="equal" data-i18n="equal">Equal Split</option>
+            <option value="proportional" data-i18n="proportional">
+              Proportional Split (by usage)
+            </option>
+          </select>
+          <div
+            id="splitMethodHelp"
+            class="form-text"
+            data-i18n="splitMethodHelp"
+          >
+            Choose how to divide the fixed charges
+          </div>
+        </div>
 
-      <!-- Hidden inputs for default split method values -->
-      <input type="hidden" id="splitMethodHidden" value="equal">
-      <input type="hidden" id="ssclSplitMethodHidden" value="equal">
+        <!-- SSCL Tax Split Method (Hidden) -->
+        <div class="mb-4" style="display: none">
+          <label
+            for="ssclSplitMethod"
+            class="form-label"
+            data-i18n="ssclSplitMethod"
+            >SSCL Tax Split Method</label
+          >
+          <select
+            id="ssclSplitMethod"
+            class="form-select"
+            aria-describedby="ssclSplitMethodHelp"
+          >
+            <option value="equal" data-i18n="equal">Equal Split</option>
+            <option value="proportional" data-i18n="proportional">
+              Proportional Split (by usage)
+            </option>
+          </select>
+          <div
+            id="ssclSplitMethodHelp"
+            class="form-text"
+            data-i18n="ssclSplitMethodHelp"
+          >
+            Choose how to divide the SSCL tax
+          </div>
+        </div>
 
-      <!-- Shop Inputs -->
-      <div class="mb-3">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <h5 class="mb-0" data-i18n="shopUnits">
-            <i class="bi bi-shop"></i> Shop Units
-          </h5>
-          <button type="button" class="btn btn-outline-primary btn-sm" id="addShopBtn" data-i18n="addShop">
-            <i class="bi bi-plus-circle"></i> Add Shop
+        <!-- Hidden inputs for default split method values -->
+        <input type="hidden" id="splitMethodHidden" value="equal" />
+        <input type="hidden" id="ssclSplitMethodHidden" value="equal" />
+
+        <!-- Shop Inputs -->
+        <div class="mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0" data-i18n="shopUnits">
+              <i class="bi bi-shop"></i> Shop Units
+            </h5>
+            <button
+              type="button"
+              class="btn btn-outline-primary btn-sm"
+              id="addShopBtn"
+              data-i18n="addShop"
+            >
+              <i class="bi bi-plus-circle"></i> Add Shop
+            </button>
+          </div>
+          <div id="shopInputs"></div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex gap-2 flex-wrap mb-4 no-print">
+          <button
+            type="submit"
+            class="btn btn-success btn-calculate"
+            data-i18n="calculate"
+          >
+            <i class="bi bi-calculator"></i> Calculate
+          </button>
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            id="resetBtn"
+            data-i18n="reset"
+          >
+            <i class="bi bi-arrow-counterclockwise"></i> Reset
+          </button>
+          <button
+            type="button"
+            class="btn btn-outline-info"
+            id="printBtn"
+            data-i18n="print"
+          >
+            <i class="bi bi-printer"></i> Print
           </button>
         </div>
-        <div id="shopInputs"></div>
-      </div>
+      </form>
 
-      <!-- Action Buttons -->
-      <div class="d-flex gap-2 flex-wrap mb-4 no-print">
-        <button type="submit" class="btn btn-success btn-calculate" data-i18n="calculate">
-          <i class="bi bi-calculator"></i> Calculate
-        </button>
-        <button type="button" class="btn btn-outline-secondary" id="resetBtn" data-i18n="reset">
-          <i class="bi bi-arrow-counterclockwise"></i> Reset
-        </button>
-        <button type="button" class="btn btn-outline-info" id="printBtn" data-i18n="print">
-          <i class="bi bi-printer"></i> Print
-        </button>
-      </div>
-    </form>
+      <!-- Results Section -->
+      <div
+        id="output"
+        class="result mt-4"
+        role="region"
+        aria-live="polite"
+        aria-label="Calculation results"
+      ></div>
 
-    <!-- Results Section -->
-    <div id="output" class="result mt-4" role="region" aria-live="polite" aria-label="Calculation results"></div>
+      <!-- Footer -->
+      <footer>
+        <p class="mb-1">
+          Developed with <i class="bi bi-heart-fill text-danger"></i> by Rasika
+        </p>
+        <a
+          href="https://github.com/mRasika"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <i class="bi bi-github"></i> GitHub Profile
+        </a>
+      </footer>
+    </div>
 
-    <!-- Footer -->
-    <footer>
-      <p class="mb-1">Developed with <i class="bi bi-heart-fill text-danger"></i> by Rasika</p>
-      <a href="https://github.com/mRasika" target="_blank" rel="noopener noreferrer">
-        <i class="bi bi-github"></i> GitHub Profile
-      </a>
-    </footer>
-  </div>
-
-  <!-- Application JavaScript -->
-  <script src="js/app.js"></script>
-</body>
+    <!-- Application JavaScript -->
+    <script src="js/app.js"></script>
+  </body>
 </html>
