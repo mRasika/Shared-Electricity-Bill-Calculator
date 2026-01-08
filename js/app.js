@@ -63,18 +63,7 @@ const translations = {
     equalTax: 'Equal Split',
     proportionalTax: 'Proportional Split (by usage)',
     ssclTaxLabel: 'SSCL Tax',
-    grandTotal: 'Grand Total',
-    calcMode: 'Calculation Mode',
-    modeFromBill: 'From Bill Amount',
-    modeFromUnits: 'From Unit Price',
-    calcModeHelp: 'Choose how to calculate the bill',
-    unitPrice: 'Unit Price (LKR)',
-    unitPriceHelp: 'Price per unit from your bill',
-    totalMonthlyUnits: 'Total Monthly Units',
-    totalMonthlyUnitsHelp: 'Total units consumed this month',
-    calculatedBill: 'Calculated Bill',
-    errorInvalidUnitPrice: 'Please enter a valid unit price',
-    errorInvalidMonthlyUnits: 'Please enter valid monthly units'
+    grandTotal: 'Grand Total'
   },
   si: {
     title: 'බෙදාගත් විදුලි බිල්පත් ගණනය',
@@ -113,18 +102,7 @@ const translations = {
     equalTax: 'සමාන බෙදීම',
     proportionalTax: 'අනුපාතික බෙදීම (භාවිතය අනුව)',
     ssclTaxLabel: 'SSCL බද්ද',
-    grandTotal: 'මුළු එකතුව',
-    calcMode: 'ගණනය කිරීමේ ක්‍රමය',
-    modeFromBill: 'බිල්පත් මුදලින්',
-    modeFromUnits: 'ඒකක මිලෙන්',
-    calcModeHelp: 'බිල්පත ගණනය කරන ආකාරය තෝරන්න',
-    unitPrice: 'ඒකක මිල (රු.)',
-    unitPriceHelp: 'ඔබගේ බිල්පතේ ඒකකයක මිල',
-    totalMonthlyUnits: 'මුළු මාසික ඒකක',
-    totalMonthlyUnitsHelp: 'මෙම මාසයේ පරිභෝජනය කළ මුළු ඒකක',
-    calculatedBill: 'ගණනය කළ බිල',
-    errorInvalidUnitPrice: 'කරුණාකර වලංගු ඒකක මිලක් ඇතුළත් කරන්න',
-    errorInvalidMonthlyUnits: 'කරුණාකර වලංගු මාසික ඒකක ඇතුළත් කරන්න'
+    grandTotal: 'මුළු එකතුව'
   }
 };
 
@@ -244,37 +222,18 @@ const updateRemoveButtons = () => {
 // ============================================
 // Calculation Logic
 // ============================================
-const getCalcMode = () => {
-  return document.querySelector('input[name="calcMode"]:checked')?.value || 'fromBill';
-};
-
 const validateInputs = () => {
-  const calcMode = getCalcMode();
+  const totalBill = parseFloat($('#totalBill').value) || 0;
+  const fixedCharge = parseFloat($('#fixedCharge').value) || 0;
   const units = [...$$('.shop-unit')].map(input => parseFloat(input.value) || 0);
   const totalUnits = units.reduce((sum, u) => sum + u, 0);
 
-  if (calcMode === 'fromBill') {
-    const totalBill = parseFloat($('#totalBill').value) || 0;
-    const fixedCharge = parseFloat($('#fixedCharge').value) || 0;
-
-    if (totalBill <= 0) {
-      return { valid: false, error: t('errorInvalidBill') };
-    }
-    if (fixedCharge > totalBill) {
-      return { valid: false, error: t('errorFixedCharge') };
-    }
-  } else {
-    const unitPrice = parseFloat($('#unitPrice').value) || 0;
-    const totalMonthlyUnits = parseFloat($('#totalMonthlyUnits').value) || 0;
-
-    if (unitPrice <= 0) {
-      return { valid: false, error: t('errorInvalidUnitPrice') };
-    }
-    if (totalMonthlyUnits <= 0) {
-      return { valid: false, error: t('errorInvalidMonthlyUnits') };
-    }
+  if (totalBill <= 0) {
+    return { valid: false, error: t('errorInvalidBill') };
   }
-
+  if (fixedCharge > totalBill) {
+    return { valid: false, error: t('errorFixedCharge') };
+  }
   if (totalUnits <= 0) {
     return { valid: false, error: t('errorNoUnits') };
   }
@@ -289,19 +248,8 @@ const calculate = () => {
     return;
   }
 
-  const calcMode = getCalcMode();
-  let totalBill, fixedCharge, unitCost;
-
-  if (calcMode === 'fromBill') {
-    totalBill = parseFloat($('#totalBill').value);
-    fixedCharge = parseFloat($('#fixedCharge').value);
-  } else {
-    unitCost = parseFloat($('#unitPrice').value);
-    const totalMonthlyUnits = parseFloat($('#totalMonthlyUnits').value);
-    fixedCharge = parseFloat($('#fixedChargeUnits').value) || 0;
-    totalBill = (unitCost * totalMonthlyUnits) + fixedCharge;
-  }
-
+  const totalBill = parseFloat($('#totalBill').value);
+  const fixedCharge = parseFloat($('#fixedCharge').value);
   const ssclTax = parseFloat($('#ssclTax').value) || 0;
   const splitMethod = $('#splitMethod').value;
   const taxSplitMethod = $('#taxSplitMethod').value;
@@ -314,12 +262,7 @@ const calculate = () => {
 
   const totalUnits = shops.reduce((sum, shop) => sum + shop.units, 0);
   const energyCost = totalBill - fixedCharge;
-  
-  // Calculate unit cost based on mode
-  if (calcMode === 'fromBill') {
-    unitCost = energyCost / totalUnits;
-  }
-  
+  const unitCost = energyCost / totalUnits;
   const numShops = shops.length;
   const totalWithTax = totalBill + ssclTax;
 
@@ -466,21 +409,8 @@ const updateUILanguage = () => {
 };
 
 const resetForm = () => {
-  // Reset mode
-  $('#modeFromBill').checked = true;
-  $('#fromBillSection').style.display = 'block';
-  $('#fromUnitsSection').style.display = 'none';
-  
-  // Reset from bill fields
   $('#totalBill').value = 2400;
   $('#fixedCharge').value = 500;
-  
-  // Reset from units fields
-  $('#unitPrice').value = 25;
-  $('#totalMonthlyUnits').value = 76;
-  $('#fixedChargeUnits').value = 500;
-  
-  // Reset other fields
   $('#ssclTax').value = 0;
   $('#splitMethod').value = 'equal';
   $('#taxSplitMethod').value = 'equal';
@@ -520,19 +450,6 @@ const init = () => {
   $('#addShopBtn').addEventListener('click', () => addShop());
   $('#resetBtn').addEventListener('click', resetForm);
   $('#printBtn').addEventListener('click', () => window.print());
-
-  // Calculation mode toggle
-  document.querySelectorAll('input[name="calcMode"]').forEach(radio => {
-    radio.addEventListener('change', (e) => {
-      if (e.target.value === 'fromBill') {
-        $('#fromBillSection').style.display = 'block';
-        $('#fromUnitsSection').style.display = 'none';
-      } else {
-        $('#fromBillSection').style.display = 'none';
-        $('#fromUnitsSection').style.display = 'block';
-      }
-    });
-  });
 
   // Form submission
   $('#calculatorForm').addEventListener('submit', (e) => {

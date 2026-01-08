@@ -48,71 +48,23 @@
 
     <!-- Main Form -->
     <form id="calculatorForm" novalidate>
-      <!-- Calculation Mode -->
-      <div class="mb-4">
-        <label class="form-label" data-i18n="calcMode">Calculation Mode</label>
-        <div class="btn-group w-100" role="group" aria-label="Calculation mode">
-          <input type="radio" class="btn-check" name="calcMode" id="modeFromBill" value="fromBill" checked>
-          <label class="btn btn-outline-primary" for="modeFromBill" data-i18n="modeFromBill">
-            <i class="bi bi-receipt"></i> From Bill Amount
-          </label>
-          <input type="radio" class="btn-check" name="calcMode" id="modeFromUnits" value="fromUnits">
-          <label class="btn btn-outline-primary" for="modeFromUnits" data-i18n="modeFromUnits">
-            <i class="bi bi-speedometer2"></i> From Unit Price
-          </label>
+      <!-- Bill Details -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-6">
+          <label for="totalBill" class="form-label" data-i18n="totalBill">Total Bill (LKR)</label>
+          <div class="input-group">
+            <span class="input-group-text">Rs.</span>
+            <input type="number" id="totalBill" class="form-control" value="2400" min="0" step="0.01" required aria-describedby="totalBillHelp">
+          </div>
+          <div id="totalBillHelp" class="form-text" data-i18n="totalBillHelp">Enter the total electricity bill amount</div>
         </div>
-        <div class="form-text" data-i18n="calcModeHelp">Choose how to calculate the bill</div>
-      </div>
-
-      <!-- From Bill Mode -->
-      <div id="fromBillSection">
-        <div class="row g-3 mb-4">
-          <div class="col-md-6">
-            <label for="totalBill" class="form-label" data-i18n="totalBill">Total Bill (LKR)</label>
-            <div class="input-group">
-              <span class="input-group-text">Rs.</span>
-              <input type="number" id="totalBill" class="form-control" value="2400" min="0" step="0.01" aria-describedby="totalBillHelp">
-            </div>
-            <div id="totalBillHelp" class="form-text" data-i18n="totalBillHelp">Enter the total electricity bill amount</div>
+        <div class="col-md-6">
+          <label for="fixedCharge" class="form-label" data-i18n="fixedCharge">Fixed Charge (LKR)</label>
+          <div class="input-group">
+            <span class="input-group-text">Rs.</span>
+            <input type="number" id="fixedCharge" class="form-control" value="500" min="0" step="0.01" required aria-describedby="fixedChargeHelp">
           </div>
-          <div class="col-md-6">
-            <label for="fixedCharge" class="form-label" data-i18n="fixedCharge">Fixed Charge (LKR)</label>
-            <div class="input-group">
-              <span class="input-group-text">Rs.</span>
-              <input type="number" id="fixedCharge" class="form-control" value="500" min="0" step="0.01" aria-describedby="fixedChargeHelp">
-            </div>
-            <div id="fixedChargeHelp" class="form-text" data-i18n="fixedChargeHelp">Fixed charges from your bill</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- From Units Mode -->
-      <div id="fromUnitsSection" style="display: none;">
-        <div class="row g-3 mb-4">
-          <div class="col-md-4">
-            <label for="unitPrice" class="form-label" data-i18n="unitPrice">Unit Price (LKR)</label>
-            <div class="input-group">
-              <span class="input-group-text">Rs.</span>
-              <input type="number" id="unitPrice" class="form-control" value="25" min="0" step="0.01" aria-describedby="unitPriceHelp">
-            </div>
-            <div id="unitPriceHelp" class="form-text" data-i18n="unitPriceHelp">Price per unit from your bill</div>
-          </div>
-          <div class="col-md-4">
-            <label for="totalMonthlyUnits" class="form-label" data-i18n="totalMonthlyUnits">Total Monthly Units</label>
-            <div class="input-group">
-              <input type="number" id="totalMonthlyUnits" class="form-control" value="76" min="0" step="0.01" aria-describedby="totalMonthlyUnitsHelp">
-              <span class="input-group-text">kWh</span>
-            </div>
-            <div id="totalMonthlyUnitsHelp" class="form-text" data-i18n="totalMonthlyUnitsHelp">Total units consumed this month</div>
-          </div>
-          <div class="col-md-4">
-            <label for="fixedChargeUnits" class="form-label" data-i18n="fixedCharge">Fixed Charge (LKR)</label>
-            <div class="input-group">
-              <span class="input-group-text">Rs.</span>
-              <input type="number" id="fixedChargeUnits" class="form-control" value="500" min="0" step="0.01" aria-describedby="fixedChargeUnitsHelp">
-            </div>
-            <div id="fixedChargeUnitsHelp" class="form-text" data-i18n="fixedChargeHelp">Fixed charges from your bill</div>
-          </div>
+          <div id="fixedChargeHelp" class="form-text" data-i18n="fixedChargeHelp">Fixed charges from your bill</div>
         </div>
       </div>
 
