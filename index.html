@@ -68,15 +68,45 @@
         </div>
       </div>
 
-      <!-- Split Method -->
-      <div class="mb-4">
+      <!-- SSCL Tax -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-6">
+          <label for="ssclTax" class="form-label" data-i18n="ssclTax">SSCL Tax (LKR)</label>
+          <div class="input-group">
+            <span class="input-group-text">Rs.</span>
+            <input type="number" id="ssclTax" class="form-control" value="60.26" min="0" step="0.01" required aria-describedby="ssclTaxHelp">
+          </div>
+          <div id="ssclTaxHelp" class="form-text" data-i18n="ssclTaxHelp">SSCL tax amount from your bill</div>
+        </div>
+      </div>
+
+      <!-- Split Method - Hidden proportional options (uncomment to enable) -->
+      <!-- 
+        To enable proportional split options:
+        1. Remove 'style="display:none"' from the options below
+        2. The 'proportional' value will split charges based on each shop's usage ratio
+      -->
+      <div class="mb-4" style="display:none">
         <label for="splitMethod" class="form-label" data-i18n="splitMethod">Fixed Charge Split Method</label>
         <select id="splitMethod" class="form-select" aria-describedby="splitMethodHelp">
           <option value="equal" data-i18n="equal">Equal Split</option>
-          <option value="proportional" data-i18n="proportional">Proportional Split (by usage)</option>
+          <option value="proportional" style="display:none" data-i18n="proportional">Proportional Split (by usage)</option>
         </select>
         <div id="splitMethodHelp" class="form-text" data-i18n="splitMethodHelp">Choose how to divide the fixed charges</div>
       </div>
+
+      <div class="mb-4" style="display:none">
+        <label for="ssclSplitMethod" class="form-label" data-i18n="ssclSplitMethod">SSCL Tax Split Method</label>
+        <select id="ssclSplitMethod" class="form-select" aria-describedby="ssclSplitMethodHelp">
+          <option value="equal" data-i18n="equal">Equal Split</option>
+          <option value="proportional" style="display:none" data-i18n="proportional">Proportional Split (by usage)</option>
+        </select>
+        <div id="ssclSplitMethodHelp" class="form-text" data-i18n="ssclSplitMethodHelp">Choose how to divide the SSCL tax</div>
+      </div>
+
+      <!-- Hidden inputs to maintain default values when dropdowns are hidden -->
+      <input type="hidden" id="splitMethodHidden" value="equal">
+      <input type="hidden" id="ssclSplitMethodHidden" value="equal">
 
       <!-- Shop Inputs -->
       <div class="mb-3">
