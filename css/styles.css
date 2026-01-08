@@ -1,0 +1,159 @@
+/* ============================================
+   Shared Electricity Bill Calculator - Styles
+   ============================================ */
+
+/* CSS Variables */
+:root {
+  --primary-bg: #ffffff;
+  --secondary-bg: #f8f9fa;
+  --text-color: #212529;
+  --border-color: #dee2e6;
+  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark Mode Variables */
+body.dark-mode {
+  --primary-bg: #121212;
+  --secondary-bg: #1e1e1e;
+  --text-color: #f1f1f1;
+  --border-color: #444;
+  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Base Styles */
+body {
+  background-color: var(--primary-bg);
+  color: var(--text-color);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* Form Controls */
+.form-control,
+.form-select {
+  background-color: var(--primary-bg);
+  color: var(--text-color);
+  border-color: var(--border-color);
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+.dark-mode .form-control,
+.dark-mode .form-select {
+  background-color: var(--secondary-bg);
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+.dark-mode .form-control:focus,
+.dark-mode .form-select:focus {
+  background-color: var(--secondary-bg);
+  color: var(--text-color);
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Shop Block - Results */
+.shop-block {
+  background: var(--secondary-bg);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border-color);
+}
+
+/* Shop Input Group */
+.shop-input-group {
+  background: var(--secondary-bg);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--border-color);
+  position: relative;
+}
+
+/* Remove Shop Button */
+.remove-shop-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+/* Logo */
+.logo {
+  max-width: 80px;
+  margin-bottom: 0.625rem;
+}
+
+/* Header Section */
+.header-section {
+  padding: 1.5rem 0;
+  margin-bottom: 1rem;
+}
+
+/* Summary Card */
+.summary-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.dark-mode .summary-card {
+  background: linear-gradient(135deg, #434343 0%, #000000 100%);
+}
+
+/* Form Switch */
+.form-switch .form-check-input {
+  cursor: pointer;
+}
+
+/* Footer */
+footer {
+  margin-top: 2.5rem;
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: #888;
+  border-top: 1px solid var(--border-color);
+}
+
+.dark-mode footer {
+  color: #aaa;
+}
+
+/* Calculate Button */
+.btn-calculate {
+  padding: 0.75rem 2rem;
+  font-size: 1.1rem;
+}
+
+/* Validation Error */
+.validation-error {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* Result Highlight */
+.result-highlight {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #198754;
+}
+
+.dark-mode .result-highlight {
+  color: #75b798;
+}
+
+/* Print Styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  .shop-block {
+    break-inside: avoid;
+  }
+}

@@ -64,9 +64,13 @@ No installation required! Just:
 
 ```
 Shared-Electricity-Bill-Calculator/
-├── index.html      # Main application file (HTML + CSS + JS)
-├── favicon.png     # Application icon
-└── README.md       # This file
+├── index.html          # Main HTML file
+├── css/
+│   └── styles.css      # Custom styles
+├── js/
+│   └── app.js          # Application logic
+├── favicon.png         # Application icon
+└── README.md           # Documentation
 ```
 
 ## 🌐 Browser Support
