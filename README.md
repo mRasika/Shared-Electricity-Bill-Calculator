@@ -12,6 +12,7 @@ A simple, user-friendly web application to calculate and split shared electricit
 - **Smart Bill Splitting** - Split electricity bills based on actual unit consumption
 - **SSCL Tax Support** - Includes SSCL (Social Security Contribution Levy) tax in calculations
 - **Equal Split** - Fixed charges and SSCL tax divided equally among all shops
+- **Proportional Split** - Hidden option to split charges based on usage (see Developer Notes)
 - **Multi-Shop Support** - Add unlimited shops with custom names
 - **Dark Mode** - Eye-friendly dark theme option
 - **Multi-Language** - Supports English and සිංහල (Sinhala)
@@ -26,7 +27,7 @@ Simply open the `index.html` file in any modern web browser to start using the c
 
 ## 📖 How to Use
 
-1. **Enter Total Bill** - Input the total electricity bill amount in LKR
+1. **Enter Total Charge** - Input the total charge amount from your bill (includes fixed charge)
 2. **Enter Fixed Charge** - Input the fixed/service charges from your bill
 3. **Enter SSCL Tax** - Input the SSCL tax amount from your bill (default: Rs. 60.26)
 4. **Add Shops** - Add shops and enter the units consumed by each
@@ -36,13 +37,16 @@ Simply open the `index.html` file in any modern web browser to start using the c
 ## 🧮 Calculation Formula
 
 ```
-Energy Cost per Unit = (Total Bill - Fixed Charge - SSCL Tax) / Total Units
+Charge for Units = Total Charge - Fixed Charge
+Unit Cost = Charge for Units ÷ Total Units
 
 For each shop:
-├── Energy Cost = Units Consumed × Energy Cost per Unit
-├── Fixed Charge = Fixed Charge ÷ Number of Shops (Equal Split)
-├── SSCL Tax = SSCL Tax ÷ Number of Shops (Equal Split)
-└── Shop Total = Energy Cost + Fixed Charge + SSCL Tax
+├── Energy Cost = Shop Units × Unit Cost
+├── Fixed Charge Share = Fixed Charge ÷ Number of Shops (Equal Split)
+├── SSCL Tax Share = SSCL Tax ÷ Number of Shops (Equal Split)
+└── Shop Total = Energy Cost + Fixed Charge Share + SSCL Tax Share
+
+Total Bill = Total Charge + SSCL Tax
 ```
 
 ## 🛠️ Installation
@@ -88,57 +92,84 @@ Contributions are welcome! Feel free to:
 5. Push (`git push origin feature/improvement`)
 6. Open a Pull Request
 
-## � Developer Notes
+## 🔧 Developer Notes
 
 ### Enabling Proportional Split Options
 
 The application includes hidden **Proportional Split** options for both Fixed Charge and SSCL Tax. 
-Currently, only Equal Split is visible in the UI. To enable proportional options:
+Currently, only Equal Split is active. To enable proportional options:
 
-#### Option 1: Show Split Method Dropdowns
+---
 
-In `index.html`, find the following section and remove `style="display:none"` from the div containers:
+### Method 1: Show Split Method Dropdowns in UI
+
+In `index.html`, find the hidden split method sections (around line 83-105) and remove `style="display:none"` from the div containers:
 
 ```html
-<!-- Change this: -->
+<!-- BEFORE (Hidden): -->
 <div class="mb-4" style="display:none">
-  <label for="splitMethod" ...>
+  <label for="splitMethod" class="form-label">Fixed Charge Split Method</label>
+  ...
+</div>
 
-<!-- To this: -->
+<!-- AFTER (Visible): -->
 <div class="mb-4">
-  <label for="splitMethod" ...>
+  <label for="splitMethod" class="form-label">Fixed Charge Split Method</label>
+  ...
+</div>
 ```
 
-Also remove `style="display:none"` from the SSCL Tax split method dropdown div.
+Do the same for the SSCL Tax split method dropdown (the next div).
 
-#### Option 2: Change Default Split Method
+---
 
-To change the default split method to proportional without showing the UI:
+### Method 2: Change Default to Proportional (Without Showing UI)
 
-In `index.html`, change the hidden input values:
+To use proportional split without showing dropdowns to users:
+
+In `index.html`, find the hidden inputs (around line 107-108) and change the values:
 
 ```html
-<!-- Change from: -->
+<!-- BEFORE (Equal Split - Default): -->
 <input type="hidden" id="splitMethodHidden" value="equal">
 <input type="hidden" id="ssclSplitMethodHidden" value="equal">
 
-<!-- To: -->
+<!-- AFTER (Proportional Split): -->
 <input type="hidden" id="splitMethodHidden" value="proportional">
 <input type="hidden" id="ssclSplitMethodHidden" value="proportional">
 ```
 
+You can also mix - e.g., proportional for Fixed Charge but equal for SSCL Tax.
+
+---
+
 ### Proportional Split Formula
 
-When proportional split is enabled:
+When proportional split is enabled, charges are divided based on usage ratio:
 
 ```
 Fixed Charge Share = (Shop Units ÷ Total Units) × Fixed Charge
 SSCL Tax Share = (Shop Units ÷ Total Units) × SSCL Tax
 ```
 
+**Example:** If Shop A uses 50 units and Shop B uses 25 units (total 75):
+- Shop A pays: (50/75) × 500 = Rs. 333.33 of Fixed Charge
+- Shop B pays: (25/75) × 500 = Rs. 166.67 of Fixed Charge
+
 This means shops with higher consumption pay a larger share of the fixed charges and taxes.
 
-## �📝 License
+---
+
+### Equal vs Proportional Comparison
+
+| Split Method | Fixed Charge (Rs. 500) | Who Benefits? |
+|--------------|------------------------|---------------|
+| **Equal** | Each shop pays Rs. 166.67 | High-usage shops |
+| **Proportional** | Based on usage % | Low-usage shops |
+
+---
+
+## 📝 License
 
 This project is open source and available under the [MIT License](LICENSE).
 
