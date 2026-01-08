@@ -157,3 +157,39 @@ footer {
     break-inside: avoid;
   }
 }
+
+/* Calculation Mode Toggle */
+.btn-group .btn-outline-primary {
+  flex: 1;
+}
+
+.dark-mode .btn-outline-primary {
+  color: #6ea8fe;
+  border-color: #6ea8fe;
+}
+
+.dark-mode .btn-outline-primary:hover {
+  background-color: #6ea8fe;
+  color: #000;
+}
+
+.dark-mode .btn-check:checked + .btn-outline-primary {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+  color: #fff;
+}
+
+/* Calculated Bill Highlight */
+.calculated-bill-info {
+  background: var(--secondary-bg);
+  border: 2px dashed var(--border-color);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.calculated-bill-info .highlight {
+  color: #0d6efd;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
