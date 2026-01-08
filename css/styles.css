@@ -51,6 +51,27 @@ body {
   box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
 }
 
+/* Form Text / Help Text */
+.form-text {
+  color: #6c757d;
+}
+
+.dark-mode .form-text {
+  color: #adb5bd;
+}
+
+/* Input Group Text */
+.dark-mode .input-group-text {
+  background-color: #2d2d2d;
+  color: #adb5bd;
+  border-color: var(--border-color);
+}
+
+/* Form Labels */
+.dark-mode .form-label {
+  color: var(--text-color);
+}
+
 /* Shop Block - Results */
 .shop-block {
   background: var(--secondary-bg);

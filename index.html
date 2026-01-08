@@ -51,12 +51,12 @@
       <!-- Bill Details -->
       <div class="row g-3 mb-4">
         <div class="col-md-6">
-          <label for="totalBill" class="form-label" data-i18n="totalBill">Total Bill (LKR)</label>
+          <label for="totalCharge" class="form-label" data-i18n="totalCharge">Total Charge (LKR)</label>
           <div class="input-group">
             <span class="input-group-text">Rs.</span>
-            <input type="number" id="totalBill" class="form-control" value="2400" min="0" step="0.01" required aria-describedby="totalBillHelp">
+            <input type="number" id="totalCharge" class="form-control" value="2350" min="0" step="0.01" required aria-describedby="totalChargeHelp">
           </div>
-          <div id="totalBillHelp" class="form-text" data-i18n="totalBillHelp">Enter the total electricity bill amount</div>
+          <div id="totalChargeHelp" class="form-text" data-i18n="totalChargeHelp">Total charge amount from your bill (includes fixed charge)</div>
         </div>
         <div class="col-md-6">
           <label for="fixedCharge" class="form-label" data-i18n="fixedCharge">Fixed Charge (LKR)</label>
@@ -74,22 +74,39 @@
           <label for="ssclTax" class="form-label" data-i18n="ssclTax">SSCL Tax (LKR)</label>
           <div class="input-group">
             <span class="input-group-text">Rs.</span>
-            <input type="number" id="ssclTax" class="form-control" value="0" min="0" step="0.01" aria-describedby="ssclTaxHelp">
+            <input type="number" id="ssclTax" class="form-control" value="60.26" min="0" step="0.01" required aria-describedby="ssclTaxHelp">
           </div>
-          <div id="ssclTaxHelp" class="form-text" data-i18n="ssclTaxHelp">Social Security Contribution Levy from your bill</div>
-        </div>
-        <div class="col-md-6">
-          <label for="taxSplitMethod" class="form-label" data-i18n="taxSplitMethod">Tax Split Method</label>
-          <select id="taxSplitMethod" class="form-select" aria-describedby="taxSplitMethodHelp">
-            <option value="equal" data-i18n="equalTax">Equal Split</option>
-            <option value="proportional" data-i18n="proportionalTax">Proportional Split (by usage)</option>
-          </select>
-          <div id="taxSplitMethodHelp" class="form-text" data-i18n="taxSplitMethodHelp">Choose how to divide the SSCL tax</div>
+          <div id="ssclTaxHelp" class="form-text" data-i18n="ssclTaxHelp">SSCL tax amount from your bill</div>
         </div>
       </div>
 
-      <!-- Split Method -->
-      <div class="mb-4">
+      <!-- ============================================
+           PROPORTIONAL SPLIT OPTIONS (HIDDEN)
+           ============================================
+           
+           These dropdowns allow choosing between Equal and Proportional split
+           for Fixed Charge and SSCL Tax. Currently hidden from UI.
+           
+           TO ACTIVATE THESE OPTIONS:
+           
+           Method 1: Show the dropdowns in UI
+           - Remove 'style="display:none"' from the div containers below
+           - Users can then choose between Equal and Proportional split
+           
+           Method 2: Change default to Proportional (without showing UI)
+           - Change the hidden input values at the bottom from "equal" to "proportional"
+           - <input type="hidden" id="splitMethodHidden" value="proportional">
+           - <input type="hidden" id="ssclSplitMethodHidden" value="proportional">
+           
+           PROPORTIONAL FORMULA:
+           - Fixed Charge Share = (Shop Units / Total Units) × Fixed Charge
+           - SSCL Tax Share = (Shop Units / Total Units) × SSCL Tax
+           
+           This means shops with higher consumption pay larger share of charges.
+           ============================================ -->
+      
+      <!-- Fixed Charge Split Method (Hidden) -->
+      <div class="mb-4" style="display:none">
         <label for="splitMethod" class="form-label" data-i18n="splitMethod">Fixed Charge Split Method</label>
         <select id="splitMethod" class="form-select" aria-describedby="splitMethodHelp">
           <option value="equal" data-i18n="equal">Equal Split</option>
@@ -97,6 +114,20 @@
         </select>
         <div id="splitMethodHelp" class="form-text" data-i18n="splitMethodHelp">Choose how to divide the fixed charges</div>
       </div>
+
+      <!-- SSCL Tax Split Method (Hidden) -->
+      <div class="mb-4" style="display:none">
+        <label for="ssclSplitMethod" class="form-label" data-i18n="ssclSplitMethod">SSCL Tax Split Method</label>
+        <select id="ssclSplitMethod" class="form-select" aria-describedby="ssclSplitMethodHelp">
+          <option value="equal" data-i18n="equal">Equal Split</option>
+          <option value="proportional" data-i18n="proportional">Proportional Split (by usage)</option>
+        </select>
+        <div id="ssclSplitMethodHelp" class="form-text" data-i18n="ssclSplitMethodHelp">Choose how to divide the SSCL tax</div>
+      </div>
+
+      <!-- Hidden inputs for default split method values -->
+      <input type="hidden" id="splitMethodHidden" value="equal">
+      <input type="hidden" id="ssclSplitMethodHidden" value="equal">
 
       <!-- Shop Inputs -->
       <div class="mb-3">

@@ -30,12 +30,16 @@ const translations = {
     title: 'Shared Electricity Bill Calculator',
     language: 'Language',
     darkMode: 'Dark Mode',
-    totalBill: 'Total Bill (LKR)',
-    totalBillHelp: 'Enter the total electricity bill amount',
+    totalCharge: 'Total Charge (LKR)',
+    totalChargeHelp: 'Total charge amount from your bill (includes fixed charge)',
     fixedCharge: 'Fixed Charge (LKR)',
     fixedChargeHelp: 'Fixed charges from your bill',
+    ssclTax: 'SSCL Tax (LKR)',
+    ssclTaxHelp: 'SSCL tax amount from your bill',
     splitMethod: 'Fixed Charge Split Method',
     splitMethodHelp: 'Choose how to divide the fixed charges',
+    ssclSplitMethod: 'SSCL Tax Split Method',
+    ssclSplitMethodHelp: 'Choose how to divide the SSCL tax',
     equal: 'Equal Split',
     proportional: 'Proportional Split (by usage)',
     shopUnits: 'Shop Units',
@@ -47,34 +51,33 @@ const translations = {
     units: 'Units',
     remove: 'Remove',
     totalUnits: 'Total Units',
-    energyCostPerUnit: 'Energy Cost per Unit',
+    chargeForUnits: 'Charge for Units',
+    energyCostPerUnit: 'Cost per Unit',
     unitsConsumed: 'Units Consumed',
     energyCost: 'Energy Cost',
     fixedChargeLabel: 'Fixed Charge',
-    totalBillLabel: 'Total Bill',
-    summary: 'Summary',
-    errorInvalidBill: 'Please enter a valid bill amount',
-    errorNoUnits: 'Please enter units for at least one shop',
-    errorFixedCharge: 'Fixed charge cannot exceed total bill',
-    ssclTax: 'SSCL Tax (LKR)',
-    ssclTaxHelp: 'Social Security Contribution Levy from your bill',
-    taxSplitMethod: 'Tax Split Method',
-    taxSplitMethodHelp: 'Choose how to divide the SSCL tax',
-    equalTax: 'Equal Split',
-    proportionalTax: 'Proportional Split (by usage)',
     ssclTaxLabel: 'SSCL Tax',
-    grandTotal: 'Grand Total'
+    totalBillLabel: 'Shop Total',
+    grandTotal: 'Grand Total',
+    summary: 'Summary',
+    errorInvalidCharge: 'Please enter a valid total charge amount',
+    errorNoUnits: 'Please enter units for at least one shop',
+    errorFixedChargeExceeds: 'Fixed charge cannot exceed total charge'
   },
   si: {
     title: 'බෙදාගත් විදුලි බිල්පත් ගණනය',
     language: 'භාෂාව',
     darkMode: 'අඳුරු මාදිලිය',
-    totalBill: 'මුළු බිල (රු.)',
-    totalBillHelp: 'මුළු විදුලි බිල්පත් මුදල ඇතුළත් කරන්න',
+    totalCharge: 'මුළු ගාස්තුව (රු.)',
+    totalChargeHelp: 'ඔබගේ බිල්පතේ මුළු ගාස්තු මුදල (ස්ථිර ගාස්තු ඇතුළුව)',
     fixedCharge: 'ස්ථිර ගාස්තුව (රු.)',
     fixedChargeHelp: 'ඔබගේ බිල්පතේ ස්ථිර ගාස්තු',
+    ssclTax: 'SSCL බදු (රු.)',
+    ssclTaxHelp: 'ඔබගේ බිල්පතේ SSCL බදු මුදල',
     splitMethod: 'ස්ථිර ගාස්තු බෙදීමේ ක්‍රමය',
     splitMethodHelp: 'ස්ථිර ගාස්තු බෙදන ආකාරය තෝරන්න',
+    ssclSplitMethod: 'SSCL බදු බෙදීමේ ක්‍රමය',
+    ssclSplitMethodHelp: 'SSCL බදු බෙදන ආකාරය තෝරන්න',
     equal: 'සමාන බෙදීම',
     proportional: 'අනුපාතික බෙදීම (භාවිතය අනුව)',
     shopUnits: 'වෙළඳසැල් ඒකක',
@@ -86,23 +89,18 @@ const translations = {
     units: 'ඒකක',
     remove: 'ඉවත් කරන්න',
     totalUnits: 'මුළු ඒකක',
-    energyCostPerUnit: 'ඒකකයකට බලශක්ති පිරිවැය',
+    chargeForUnits: 'ඒකක සඳහා ගාස්තුව',
+    energyCostPerUnit: 'ඒකකයකට පිරිවැය',
     unitsConsumed: 'පරිභෝජිත ඒකක',
     energyCost: 'බලශක්ති පිරිවැය',
     fixedChargeLabel: 'ස්ථිර ගාස්තුව',
-    totalBillLabel: 'මුළු බිල',
+    ssclTaxLabel: 'SSCL බදු',
+    totalBillLabel: 'වෙළඳසැල් එකතුව',
+    grandTotal: 'මුළු එකතුව',
     summary: 'සාරාංශය',
-    errorInvalidBill: 'කරුණාකර වලංගු බිල්පත් මුදලක් ඇතුළත් කරන්න',
+    errorInvalidCharge: 'කරුණාකර වලංගු මුළු ගාස්තු මුදලක් ඇතුළත් කරන්න',
     errorNoUnits: 'අවම වශයෙන් එක් වෙළඳසැලකට ඒකක ඇතුළත් කරන්න',
-    errorFixedCharge: 'ස්ථිර ගාස්තුව මුළු බිල්පතට වඩා වැඩි විය නොහැක',
-    ssclTax: 'SSCL බද්ද (රු.)',
-    ssclTaxHelp: 'ඔබගේ බිල්පතේ සමාජ ආරක්ෂණ දායක බද්ද',
-    taxSplitMethod: 'බදු බෙදීමේ ක්‍රමය',
-    taxSplitMethodHelp: 'SSCL බද්ද බෙදන ආකාරය තෝරන්න',
-    equalTax: 'සමාන බෙදීම',
-    proportionalTax: 'අනුපාතික බෙදීම (භාවිතය අනුව)',
-    ssclTaxLabel: 'SSCL බද්ද',
-    grandTotal: 'මුළු එකතුව'
+    errorFixedChargeExceeds: 'ස්ථිර ගාස්තුව මුළු ගාස්තුවට වඩා වැඩි විය නොහැක'
   }
 };
 
@@ -223,16 +221,16 @@ const updateRemoveButtons = () => {
 // Calculation Logic
 // ============================================
 const validateInputs = () => {
-  const totalBill = parseFloat($('#totalBill').value) || 0;
+  const totalCharge = parseFloat($('#totalCharge').value) || 0;
   const fixedCharge = parseFloat($('#fixedCharge').value) || 0;
   const units = [...$$('.shop-unit')].map(input => parseFloat(input.value) || 0);
   const totalUnits = units.reduce((sum, u) => sum + u, 0);
 
-  if (totalBill <= 0) {
-    return { valid: false, error: t('errorInvalidBill') };
+  if (totalCharge <= 0) {
+    return { valid: false, error: t('errorInvalidCharge') };
   }
-  if (fixedCharge > totalBill) {
-    return { valid: false, error: t('errorFixedCharge') };
+  if (fixedCharge > totalCharge) {
+    return { valid: false, error: t('errorFixedChargeExceeds') };
   }
   if (totalUnits <= 0) {
     return { valid: false, error: t('errorNoUnits') };
@@ -248,11 +246,13 @@ const calculate = () => {
     return;
   }
 
-  const totalBill = parseFloat($('#totalBill').value);
+  const totalCharge = parseFloat($('#totalCharge').value);
   const fixedCharge = parseFloat($('#fixedCharge').value);
   const ssclTax = parseFloat($('#ssclTax').value) || 0;
-  const splitMethod = $('#splitMethod').value;
-  const taxSplitMethod = $('#taxSplitMethod').value;
+  
+  // Get split methods (use hidden inputs as fallback when dropdowns are hidden)
+  const splitMethod = $('#splitMethod')?.value || $('#splitMethodHidden')?.value || 'equal';
+  const ssclSplitMethod = $('#ssclSplitMethod')?.value || $('#ssclSplitMethodHidden')?.value || 'equal';
 
   const shopInputs = $$('.shop-input-group');
   const shops = [...shopInputs].map(shop => ({
@@ -261,10 +261,14 @@ const calculate = () => {
   }));
 
   const totalUnits = shops.reduce((sum, shop) => sum + shop.units, 0);
-  const energyCost = totalBill - fixedCharge;
-  const unitCost = energyCost / totalUnits;
+  
+  // New Formula: Charge for Units = Total Charge - Fixed Charge
+  const chargeForUnits = totalCharge - fixedCharge;
+  const unitCost = chargeForUnits / totalUnits;
   const numShops = shops.length;
-  const totalWithTax = totalBill + ssclTax;
+  
+  // Total Bill = Total Charge + SSCL Tax
+  const totalBill = totalCharge + ssclTax;
 
   let grandTotal = 0;
 
@@ -272,18 +276,18 @@ const calculate = () => {
   let outputHTML = `
     <div class="summary-card">
       <h4><i class="bi bi-bar-chart-fill"></i> ${t('summary')}</h4>
-      <div class="row">
+      <div class="row g-2">
         <div class="col-4">
           <div class="small opacity-75">${t('totalUnits')}</div>
           <div class="h5 mb-0">${formatCurrency(totalUnits)}</div>
         </div>
         <div class="col-4">
-          <div class="small opacity-75">${t('energyCostPerUnit')}</div>
-          <div class="h5 mb-0">${APP_CONFIG.currencySymbol} ${formatCurrency(unitCost)}</div>
+          <div class="small opacity-75">${t('chargeForUnits')}</div>
+          <div class="h5 mb-0">${APP_CONFIG.currencySymbol} ${formatCurrency(chargeForUnits)}</div>
         </div>
         <div class="col-4">
-          <div class="small opacity-75">${t('ssclTaxLabel')}</div>
-          <div class="h5 mb-0">${APP_CONFIG.currencySymbol} ${formatCurrency(ssclTax)}</div>
+          <div class="small opacity-75">${t('energyCostPerUnit')}</div>
+          <div class="h5 mb-0">${APP_CONFIG.currencySymbol} ${formatCurrency(unitCost)}</div>
         </div>
       </div>
     </div>
@@ -294,15 +298,15 @@ const calculate = () => {
     let shopFixedCharge = 0;
     let shopSsclTax = 0;
 
-    // Calculate fixed charge share
+    // Calculate Fixed Charge share
     if (splitMethod === 'equal') {
       shopFixedCharge = fixedCharge / numShops;
     } else {
       shopFixedCharge = (shop.units / totalUnits) * fixedCharge;
     }
 
-    // Calculate SSCL tax share
-    if (taxSplitMethod === 'equal') {
+    // Calculate SSCL Tax share
+    if (ssclSplitMethod === 'equal') {
       shopSsclTax = ssclTax / numShops;
     } else {
       shopSsclTax = (shop.units / totalUnits) * ssclTax;
@@ -324,16 +328,15 @@ const calculate = () => {
           <div class="col-6">${t('fixedChargeLabel')} (${splitMethod === 'equal' ? t('equal') : t('proportional')}):</div>
           <div class="col-6 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(shopFixedCharge)}</div>
           
-          <div class="col-6">${t('ssclTaxLabel')} (${taxSplitMethod === 'equal' ? t('equalTax') : t('proportionalTax')}):</div>
+          <div class="col-6">${t('ssclTaxLabel')} (${ssclSplitMethod === 'equal' ? t('equal') : t('proportional')}):</div>
           <div class="col-6 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(shopSsclTax)}</div>
           
           <div class="col-12"><hr class="my-2"></div>
           
-          <div class="col-6"><strong>${t('grandTotal')}:</strong></div>
+          <div class="col-6"><strong>${t('totalBillLabel')}:</strong></div>
           <div class="col-6 text-end result-highlight">${APP_CONFIG.currencySymbol} ${formatCurrency(shopTotal)}</div>
         </div>
       </div>
-    `;
     `;
   });
 
@@ -341,8 +344,8 @@ const calculate = () => {
   outputHTML += `
     <div class="alert alert-info mt-3">
       <i class="bi bi-check-circle"></i> 
-      <strong>Verification:</strong> Sum of all bills = ${APP_CONFIG.currencySymbol} ${formatCurrency(grandTotal)} 
-      (Original Bill + SSCL Tax: ${APP_CONFIG.currencySymbol} ${formatCurrency(totalWithTax)})
+      <strong>Verification:</strong> Sum of all shop bills = ${APP_CONFIG.currencySymbol} ${formatCurrency(grandTotal)} 
+      (${t('grandTotal')}: ${APP_CONFIG.currencySymbol} ${formatCurrency(totalBill)})
     </div>
   `;
 
@@ -350,11 +353,11 @@ const calculate = () => {
 
   // Save last calculation
   saveToStorage(APP_CONFIG.storageKeys.lastCalculation, {
-    totalBill,
+    totalCharge,
     fixedCharge,
     ssclTax,
     splitMethod,
-    taxSplitMethod,
+    ssclSplitMethod,
     shops
   });
 };
@@ -411,9 +414,7 @@ const updateUILanguage = () => {
 const resetForm = () => {
   $('#totalBill').value = 2400;
   $('#fixedCharge').value = 500;
-  $('#ssclTax').value = 0;
   $('#splitMethod').value = 'equal';
-  $('#taxSplitMethod').value = 'equal';
   $('#output').innerHTML = '';
 
   // Reset shops
