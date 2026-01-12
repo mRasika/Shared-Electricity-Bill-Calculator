@@ -449,7 +449,7 @@ const resetForm = () => {
   $("#fixedCharge").value = 500;
   $("#ssclTax").value = 60.26;
   $("#splitMethod").value = "equal";
-  $("#ssclSplitMethod").value = "equal";
+  $("#ssclSplitMethod").value = "proportional";
   $("#output").innerHTML = "";
 
   // Reset shops
