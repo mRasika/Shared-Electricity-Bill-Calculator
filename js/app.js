@@ -470,13 +470,14 @@ const calculate = () => {
   // If a shop individually exceeds threshold (breaker), they pay:
   // 1. High rate for ALL their units
   // 2. Fixed charge PENALTY ONLY (Rs. 1,100) - NOT their fair share
-  // 3. Their fair share is redistributed to innocent shops
+  // 3. Their fair share is redistributed to innocent shops (using same split method)
   // 4. SSCL on their subtotal
   
   // Calculate redistribution amounts
   const innocentShops = shops.filter(s => s.units <= threshold);
   const numInnocent = innocentShops.length;
   const numBreakers = breakers.length;
+  const totalInnocentUnits = innocentShops.reduce((sum, s) => sum + s.units, 0);
   
   // Breaker's fair share to redistribute (if any breakers exist)
   let breakerFairShareTotal = 0;
@@ -489,11 +490,6 @@ const calculate = () => {
       breakerFairShareTotal = breakers.reduce((sum, b) => sum + (b.units / totalUnits) * fairFixed, 0);
     }
   }
-  
-  // Per innocent shop redistribution amount
-  const redistributionPerInnocent = (numInnocent > 0 && breakerFairShareTotal > 0) 
-    ? breakerFairShareTotal / numInnocent 
-    : 0;
   
   let totalBreakerPenalty = 0; // Track how much breakers are paying extra
   
@@ -514,12 +510,17 @@ const calculate = () => {
       // INNOCENT: Pays fair share + redistribution from breaker
       if (splitMethod === "equal") {
         shopFixedCharge = fairFixed / numShops;
+        // Equal redistribution
+        if (isAboveThreshold && hasBreaker && numInnocent > 0) {
+          shopRedistribution = breakerFairShareTotal / numInnocent;
+        }
       } else {
+        // Proportional fixed charge based on usage
         shopFixedCharge = (shop.units / totalUnits) * fairFixed;
-      }
-      // Add redistributed amount from breaker's share
-      if (isAboveThreshold && hasBreaker) {
-        shopRedistribution = redistributionPerInnocent;
+        // Proportional redistribution based on innocent shop's usage ratio
+        if (isAboveThreshold && hasBreaker && totalInnocentUnits > 0) {
+          shopRedistribution = (shop.units / totalInnocentUnits) * breakerFairShareTotal;
+        }
       }
     }
 
