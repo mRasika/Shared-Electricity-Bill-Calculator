@@ -43,11 +43,92 @@ Unit Cost = Charge for Units ÷ Total Units
 For each shop:
 ├── Energy Cost = Shop Units × Unit Cost
 ├── Fixed Charge Share = Fixed Charge ÷ Number of Shops (Equal Split)
-├── SSCL Tax Share = SSCL Tax ÷ Number of Shops (Equal Split)
+├── SSCL Tax Share = (Shop Units ÷ Total Units) × SSCL Tax (Proportional Split)
 └── Shop Total = Energy Cost + Fixed Charge Share + SSCL Tax Share
 
 Total Bill = Total Charge + SSCL Tax
 ```
+
+## 📊 Example Use Case
+
+Here's a real-world example with 3 shops sharing an electricity connection:
+
+### Input Values
+| Parameter | Value |
+|-----------|-------|
+| Total Charge (LKR) | Rs. 2,350.00 |
+| Fixed Charge (LKR) | Rs. 500.00 |
+| SSCL Tax (LKR) | Rs. 60.26 |
+| Total Units | 74 |
+| Shop 1 Usage | 56 units |
+| Shop 2 Usage | 17 units |
+| Shop 3 Usage | 1 unit |
+
+### Calculation Breakdown
+
+**Step 1: Calculate Unit Cost**
+```
+Charge for Units = 2,350 - 500 = Rs. 1,850.00
+Unit Cost = 1,850 ÷ 74 = Rs. 25.00 per unit
+```
+
+**Step 2: Calculate Each Shop's Share**
+
+| Shop | Units | Energy Cost | Fixed Charge Share | SSCL Tax Share | Total |
+|------|-------|-------------|-------------------|----------------|-------|
+| Shop 1 | 56 | 56 × 25 = Rs. 1,400.00 | 500 ÷ 3 = Rs. 166.67 | (56/74) × 60.26 = Rs. 45.60 | **Rs. 1,612.27** |
+| Shop 2 | 17 | 17 × 25 = Rs. 425.00 | 500 ÷ 3 = Rs. 166.67 | (17/74) × 60.26 = Rs. 13.84 | **Rs. 605.51** |
+| Shop 3 | 1 | 1 × 25 = Rs. 25.00 | 500 ÷ 3 = Rs. 166.67 | (1/74) × 60.26 = Rs. 0.81 | **Rs. 192.48** |
+
+**Step 3: Verify Total**
+```
+Grand Total = 1,612.27 + 605.51 + 192.48 = Rs. 2,410.26
+Expected Total = Total Charge + SSCL Tax = 2,350 + 60.26 = Rs. 2,410.26 ✓
+```
+
+> **Note:** Fixed Charge uses **Equal Split** (divided equally among shops), while SSCL Tax uses **Proportional Split** (based on usage percentage) by default.
+
+---
+
+### 🔄 Same Example with Full Proportional Split
+
+If you enable **Proportional Split** for Fixed Charge (see Developer Notes), here's how the same example would calculate:
+
+**Proportional Formula:**
+```
+Fixed Charge Share = (Shop Units ÷ Total Units) × Fixed Charge
+SSCL Tax Share = (Shop Units ÷ Total Units) × SSCL Tax
+```
+
+**Calculation with Proportional Split:**
+
+| Shop | Units | Usage % | Energy Cost | Fixed Charge Share | SSCL Tax Share | Total |
+|------|-------|---------|-------------|-------------------|----------------|-------|
+| Shop 1 | 56 | 75.68% | Rs. 1,400.00 | (56/74) × 500 = Rs. 378.38 | (56/74) × 60.26 = Rs. 45.60 | **Rs. 1,823.98** |
+| Shop 2 | 17 | 22.97% | Rs. 425.00 | (17/74) × 500 = Rs. 114.86 | (17/74) × 60.26 = Rs. 13.84 | **Rs. 553.70** |
+| Shop 3 | 1 | 1.35% | Rs. 25.00 | (1/74) × 500 = Rs. 6.76 | (1/74) × 60.26 = Rs. 0.81 | **Rs. 32.57** |
+
+**Verify Total:**
+```
+Grand Total = 1,823.98 + 553.70 + 32.57 = Rs. 2,410.25 ≈ Rs. 2,410.26 ✓
+```
+
+### 📈 Comparison: Equal vs Proportional Split
+
+| Shop | Units | Equal Split Total | Proportional Split Total | Difference |
+|------|-------|-------------------|-------------------------|------------|
+| Shop 1 | 56 | Rs. 1,612.27 | Rs. 1,823.98 | +Rs. 211.71 |
+| Shop 2 | 17 | Rs. 605.51 | Rs. 553.70 | -Rs. 51.81 |
+| Shop 3 | 1 | Rs. 192.48 | Rs. 32.57 | -Rs. 159.91 |
+
+**Key Insights:**
+- 🏪 **Shop 1 (56 units)** pays **Rs. 211.71 more** with proportional split - fair for high usage
+- 🏪 **Shop 2 (17 units)** saves **Rs. 51.81** with proportional split
+- 🏪 **Shop 3 (1 unit)** saves **Rs. 159.91** with proportional split - biggest benefit for lowest usage
+
+> **Which to choose?**
+> - **Equal Split** - Simpler, benefits high-usage shops
+> - **Proportional Split** - Fairer, low-usage shops pay less of the shared charges
 
 ## 🛠️ Installation
 
