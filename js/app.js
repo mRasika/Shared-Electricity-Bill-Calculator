@@ -107,6 +107,7 @@ const translations = {
     collectiveBreach: "Collective Threshold Breach",
     collectiveBreachExplanation: "No single shop exceeded the threshold. The collective usage caused the high rate. Building owner absorbs the penalty.",
   },
+  si: {
     title: "බෙදාගත් විදුලි බිල්පත් ගණනය",
     language: "භාෂාව",
     darkMode: "අඳුරු මාදිලිය",
