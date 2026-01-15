@@ -7,7 +7,7 @@
       name="description"
       content="Calculate and split shared electricity bills among multiple shops fairly"
     />
-    <title>Shared Electricity Bill Calculator</title>
+    <title>Shared Electricity Bill Calculator for GP1 Tariff Sri Lanka</title>
 
     <!-- Bootstrap CSS -->
     <link
@@ -133,7 +133,8 @@
         <div class="row g-3 mb-4">
           <div class="col-md-6">
             <label for="ssclTax" class="form-label" data-i18n="ssclTax"
-              >CEB SSCL Tax (LKR) <small class="text-muted">(Auto)</small></label
+              >CEB SSCL Tax (LKR)
+              <small class="text-muted">(Auto)</small></label
             >
             <div class="input-group">
               <span class="input-group-text">Rs.</span>
@@ -147,7 +148,11 @@
                 readonly
                 aria-describedby="ssclTaxHelp"
               />
-              <span class="input-group-text" title="CEB SSCL: Subtotal × (2.5/97.5)"><i class="bi bi-calculator"></i></span>
+              <span
+                class="input-group-text"
+                title="CEB SSCL: Subtotal × (2.5/97.5)"
+                ><i class="bi bi-calculator"></i
+              ></span>
             </div>
             <div id="ssclTaxHelp" class="form-text" data-i18n="ssclTaxHelp">
               CEB's SSCL: Subtotal × (2.5/97.5)
@@ -158,7 +163,9 @@
               >Billing Days</label
             >
             <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+              <span class="input-group-text"
+                ><i class="bi bi-calendar3"></i
+              ></span>
               <input
                 type="number"
                 id="billingDays"
@@ -171,7 +178,11 @@
                 aria-describedby="billingDaysHelp"
               />
             </div>
-            <div id="billingDaysHelp" class="form-text" data-i18n="billingDaysHelp">
+            <div
+              id="billingDaysHelp"
+              class="form-text"
+              data-i18n="billingDaysHelp"
+            >
               Number of days in the billing period (default: 30)
             </div>
           </div>
