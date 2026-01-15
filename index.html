@@ -129,27 +129,96 @@
           </div>
         </div>
 
-        <!-- SSCL Tax -->
+        <!-- SSCL Tax (Auto-Calculated) -->
         <div class="row g-3 mb-4">
           <div class="col-md-6">
             <label for="ssclTax" class="form-label" data-i18n="ssclTax"
-              >SSCL Tax (LKR)</label
+              >CEB SSCL Tax (LKR) <small class="text-muted">(Auto)</small></label
             >
             <div class="input-group">
               <span class="input-group-text">Rs.</span>
               <input
                 type="number"
                 id="ssclTax"
+                class="form-control bg-light"
+                value="58.75"
+                min="0"
+                step="0.01"
+                readonly
+                aria-describedby="ssclTaxHelp"
+              />
+              <span class="input-group-text" title="CEB SSCL: Subtotal × (2.5/97.5)"><i class="bi bi-calculator"></i></span>
+            </div>
+            <div id="ssclTaxHelp" class="form-text" data-i18n="ssclTaxHelp">
+              CEB's SSCL: Subtotal × (2.5/97.5)
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label for="billingDays" class="form-label" data-i18n="billingDays"
+              >Billing Days</label
+            >
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+              <input
+                type="number"
+                id="billingDays"
                 class="form-control"
-                value="60.26"
+                value="30"
+                min="1"
+                max="31"
+                step="1"
+                required
+                aria-describedby="billingDaysHelp"
+              />
+            </div>
+            <div id="billingDaysHelp" class="form-text" data-i18n="billingDaysHelp">
+              Number of days in the billing period (default: 30)
+            </div>
+          </div>
+        </div>
+
+        <!-- Fair Rate Settings -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label for="fairRate" class="form-label" data-i18n="fairRate"
+              >Fair Unit Rate (LKR)</label
+            >
+            <div class="input-group">
+              <span class="input-group-text">Rs.</span>
+              <input
+                type="number"
+                id="fairRate"
+                class="form-control"
+                value="25"
                 min="0"
                 step="0.01"
                 required
-                aria-describedby="ssclTaxHelp"
+                aria-describedby="fairRateHelp"
               />
             </div>
-            <div id="ssclTaxHelp" class="form-text" data-i18n="ssclTaxHelp">
-              SSCL tax amount from your bill
+            <div id="fairRateHelp" class="form-text" data-i18n="fairRateHelp">
+              Standard rate per unit for shops (below threshold)
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label for="fairFixed" class="form-label" data-i18n="fairFixed"
+              >Fair Fixed Charge (LKR)</label
+            >
+            <div class="input-group">
+              <span class="input-group-text">Rs.</span>
+              <input
+                type="number"
+                id="fairFixed"
+                class="form-control"
+                value="500"
+                min="0"
+                step="0.01"
+                required
+                aria-describedby="fairFixedHelp"
+              />
+            </div>
+            <div id="fairFixedHelp" class="form-text" data-i18n="fairFixedHelp">
+              Standard fixed charge for shops (shared among all)
             </div>
           </div>
         </div>
@@ -305,6 +374,6 @@
     </div>
 
     <!-- Application JavaScript -->
-    <script src="js/app.js?v=1.1"></script>
+    <script src="js/app.js?v=2.3"></script>
   </body>
 </html>

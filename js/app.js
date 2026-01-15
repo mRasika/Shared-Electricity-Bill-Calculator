@@ -20,6 +20,21 @@ const APP_CONFIG = {
     language: "electricityCalc_language",
     lastCalculation: "electricityCalc_lastData",
   },
+  // GP1 Tariff Configuration (CEB Rates - June 2025)
+  gp1Tariff: {
+    baseThreshold: 180, // Units per 30 days
+    baseDays: 30,
+    lowRate: {
+      unitPrice: 25.00,
+      fixedCharge: 500.00,
+    },
+    highRate: {
+      unitPrice: 34.00,
+      fixedCharge: 1600.00,
+    },
+    // SSCL is 2.5% of final bill, so: SSCL = Subtotal × (2.5/97.5)
+    ssclFactor: 2.5 / 97.5, // = 0.025641...
+  },
 };
 
 // ============================================
@@ -35,8 +50,8 @@ const translations = {
       "Total charge amount from your bill (includes fixed charge)",
     fixedCharge: "Fixed Charge (LKR)",
     fixedChargeHelp: "Fixed charges from your bill",
-    ssclTax: "SSCL Tax (LKR)",
-    ssclTaxHelp: "SSCL tax amount from your bill",
+    ssclTax: "CEB SSCL Tax (LKR)",
+    ssclTaxHelp: "CEB's SSCL: Subtotal × (2.5/97.5)",
     splitMethod: "Fixed Charge Split Method",
     splitMethodHelp: "Choose how to divide the fixed charges",
     ssclSplitMethod: "SSCL Tax Split Method",
@@ -64,6 +79,34 @@ const translations = {
     errorInvalidCharge: "Please enter a valid total charge amount",
     errorNoUnits: "Please enter units for at least one shop",
     errorFixedChargeExceeds: "Fixed charge cannot exceed total charge",
+    billingDays: "Billing Days",
+    billingDaysHelp: "Number of days in the billing period (default: 30)",
+    fairRate: "Fair Unit Rate (LKR)",
+    fairRateHelp: "Standard rate per unit for shops (below threshold)",
+    fairFixed: "Fair Fixed Charge (LKR)",
+    fairFixedHelp: "Standard fixed charge for shops",
+    usageThreshold: "Usage Threshold",
+    thresholdStatus: "Threshold Status",
+    belowThreshold: "Below Threshold (No Penalty)",
+    aboveThreshold: "Above Threshold (Penalty Applies)",
+    buildingOwnerPenalty: "Building Owner Penalty",
+    penaltyExplanation: "This is the difference between CEB's actual charges and what shops pay at fair rate",
+    totalFromShops: "Total from Shops",
+    cebTotalBill: "CEB Total Bill",
+    fairEnergyTotal: "Fair Energy Total",
+    penaltyCalculation: "Penalty Calculation",
+    noPenalty: "No Penalty - Usage is within threshold",
+    // Breaker penalty translations
+    thresholdBreaker: "Threshold Breaker",
+    fixedPenalty: "Fixed Charge Penalty",
+    redistributedFixed: "Redistributed Fixed",
+    remainingGap: "Remaining Gap",
+    remainingGapExplanation: "This is the remaining difference after breaker shops paid their penalties. Due to innocent shops using electricity at CEB high rates.",
+    breakersCoveredPenalty: "Breaker Shops Covered the Penalty",
+    breakerPaidExtra: "Threshold breaker shops paid",
+    extraForCausingHighRate: "extra for causing high rate charges",
+    collectiveBreach: "Collective Threshold Breach",
+    collectiveBreachExplanation: "No single shop exceeded the threshold. The collective usage caused the high rate. Building owner absorbs the penalty.",
   },
   si: {
     title: "බෙදාගත් විදුලි බිල්පත් ගණනය",
@@ -73,8 +116,8 @@ const translations = {
     totalChargeHelp: "ඔබගේ බිල්පතේ මුළු ගාස්තු මුදල (ස්ථිර ගාස්තු ඇතුළුව)",
     fixedCharge: "ස්ථිර ගාස්තුව (රු.)",
     fixedChargeHelp: "ඔබගේ බිල්පතේ ස්ථිර ගාස්තු",
-    ssclTax: "SSCL බදු (රු.)",
-    ssclTaxHelp: "ඔබගේ බිල්පතේ SSCL බදු මුදල",
+    ssclTax: "CEB SSCL බදු (රු.)",
+    ssclTaxHelp: "CEB SSCL: උප එකතුව × (2.5/97.5)",
     splitMethod: "ස්ථිර ගාස්තු බෙදීමේ ක්‍රමය",
     splitMethodHelp: "ස්ථිර ගාස්තු බෙදන ආකාරය තෝරන්න",
     ssclSplitMethod: "SSCL බදු බෙදීමේ ක්‍රමය",
@@ -102,6 +145,34 @@ const translations = {
     errorInvalidCharge: "කරුණාකර වලංගු මුළු ගාස්තු මුදලක් ඇතුළත් කරන්න",
     errorNoUnits: "අවම වශයෙන් එක් වෙළඳසැලකට ඒකක ඇතුළත් කරන්න",
     errorFixedChargeExceeds: "ස්ථිර ගාස්තුව මුළු ගාස්තුවට වඩා වැඩි විය නොහැක",
+    billingDays: "බිල් දින",
+    billingDaysHelp: "බිල් කාලය තුළ දින ගණන (පෙරනිමි: 30)",
+    fairRate: "සාධාරණ ඒකක අනුපාතය (රු.)",
+    fairRateHelp: "වෙළඳසැල් සඳහා ඒකකයකට සම්මත අනුපාතය",
+    fairFixed: "සාධාරණ ස්ථිර ගාස්තුව (රු.)",
+    fairFixedHelp: "වෙළඳසැල් සඳහා සම්මත ස්ථිර ගාස්තුව",
+    usageThreshold: "භාවිත සීමාව",
+    thresholdStatus: "සීමාවේ තත්ත්වය",
+    belowThreshold: "සීමාවට පහළින් (දඩයක් නැත)",
+    aboveThreshold: "සීමාවට ඉහළින් (දඩය අදාළ වේ)",
+    buildingOwnerPenalty: "ගොඩනැගිලි හිමිකරුගේ දඩය",
+    penaltyExplanation: "මෙය CEB හි සත්‍ය ගාස්තු සහ වෙළඳසැල් සාධාරණ මිලට ගෙවන මුදල අතර වෙනසයි",
+    totalFromShops: "වෙළඳසැල් වලින් මුළු මුදල",
+    cebTotalBill: "CEB මුළු බිල්පත",
+    fairEnergyTotal: "සාධාරණ බලශක්ති මුළු මුදල",
+    penaltyCalculation: "දඩ ගණනය කිරීම",
+    noPenalty: "දඩයක් නැත - භාවිතය සීමාව තුළ ඇත",
+    // Breaker penalty translations
+    thresholdBreaker: "සීමාව කඩකරන්නා",
+    fixedPenalty: "ස්ථිර ගාස්තු දඩය",
+    redistributedFixed: "නැවත බෙදා හරින ලද ස්ථිර",
+    remainingGap: "ඉතිරි වෙනස",
+    remainingGapExplanation: "මෙය සීමාව කඩකළ වෙළඳසැල් තම දඩය ගෙවීමෙන් පසු ඉතිරි වෙනසයි. අහිංසක වෙළඳසැල් CEB ඉහළ මිලට විදුලිය භාවිතා කළ නිසා.",
+    breakersCoveredPenalty: "සීමාව කඩකළ වෙළඳසැල් දඩය ගෙවා ඇත",
+    breakerPaidExtra: "සීමාව කඩකළ වෙළඳසැල් ගෙවූ අමතර මුදල",
+    extraForCausingHighRate: "ඉහළ අනුපාත ගාස්තු ඇති කිරීම සඳහා",
+    collectiveBreach: "සමූහ සීමාව කඩ කිරීම",
+    collectiveBreachExplanation: "තනි වෙළඳසැලක් සීමාව ඉක්මවා නැත. සමූහ භාවිතය ඉහළ අනුපාතයට හේතු විය. ගොඩනැගිලි හිමිකරු දඩය දරයි.",
   },
 };
 
@@ -125,6 +196,51 @@ const formatCurrency = (amount) => {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount);
+};
+
+// ============================================
+// SSCL Tax Calculation (CEB Official Formula)
+// SSCL is 2.5% of the FINAL bill, not subtotal
+// Formula: SSCL = Subtotal × (2.5 / 97.5)
+// ============================================
+const SSCL_FACTOR = 2.5 / 97.5; // = 0.025641...
+
+/**
+ * Calculate SSCL Tax based on official CEB formula
+ * SSCL = (Energy Charge + Fixed Charge) × (2.5 / 97.5)
+ * 
+ * @param {number} subtotal - Subtotal (Energy + Fixed) before SSCL
+ * @returns {object} - { sscl, grandTotal }
+ */
+const calculateSSCL = (subtotal) => {
+  const ssclAmount = subtotal * SSCL_FACTOR;
+  return {
+    sscl: parseFloat(ssclAmount.toFixed(2)),
+    grandTotal: parseFloat((subtotal + ssclAmount).toFixed(2))
+  };
+};
+
+/**
+ * Calculate per-shop SSCL based on their energy + fixed share
+ * @param {number} shopEnergy - Shop's energy cost
+ * @param {number} shopFixedShare - Shop's share of fixed charge
+ * @returns {number} - Shop's SSCL amount
+ */
+const calculateShopSSCL = (shopEnergy, shopFixedShare) => {
+  const shopSubtotal = shopEnergy + shopFixedShare;
+  return parseFloat((shopSubtotal * SSCL_FACTOR).toFixed(2));
+};
+
+/**
+ * Auto-update CEB SSCL Tax display when Total Charge changes
+ */
+const updateSSCLTax = () => {
+  const totalCharge = parseFloat($("#totalCharge")?.value) || 0;
+  const { sscl } = calculateSSCL(totalCharge);
+  const ssclInput = $("#ssclTax");
+  if (ssclInput) {
+    ssclInput.value = sscl.toFixed(2);
+  }
 };
 
 const saveToStorage = (key, value) => {
@@ -256,6 +372,9 @@ const calculate = () => {
   const totalCharge = parseFloat($("#totalCharge").value);
   const fixedCharge = parseFloat($("#fixedCharge").value);
   const ssclTax = parseFloat($("#ssclTax").value) || 0;
+  const billingDays = parseFloat($("#billingDays")?.value) || 30;
+  const fairRate = parseFloat($("#fairRate")?.value) || APP_CONFIG.gp1Tariff.lowRate.unitPrice;
+  const fairFixed = parseFloat($("#fairFixed")?.value) || APP_CONFIG.gp1Tariff.lowRate.fixedCharge;
 
   // Get split methods (use hidden inputs as fallback when dropdowns are hidden)
   const splitMethod =
@@ -273,110 +392,294 @@ const calculate = () => {
 
   const totalUnits = shops.reduce((sum, shop) => sum + shop.units, 0);
 
-  // New Formula: Charge for Units = Total Charge - Fixed Charge
-  const chargeForUnits = totalCharge - fixedCharge;
-  const unitCost = chargeForUnits / totalUnits;
+  // Calculate dynamic threshold based on billing days
+  const threshold = (APP_CONFIG.gp1Tariff.baseThreshold / APP_CONFIG.gp1Tariff.baseDays) * billingDays;
+  const isAboveThreshold = totalUnits > threshold;
+
+  // Identify "breaker" shops - shops that individually exceed the threshold
+  const breakerShops = shops.map((shop, index) => ({
+    ...shop,
+    index,
+    isBreaker: shop.units > threshold
+  }));
+  const breakers = breakerShops.filter(s => s.isBreaker);
+  const hasBreaker = breakers.length > 0;
+
+  // Get high rate from config
+  const highRate = APP_CONFIG.gp1Tariff.highRate.unitPrice;
+  const highFixed = APP_CONFIG.gp1Tariff.highRate.fixedCharge;
+  const fixedDifference = highFixed - fairFixed; // Rs. 1,600 - Rs. 500 = Rs. 1,100
+
+  // Fair Rate Calculation for shops
+  const fairEnergyTotal = totalUnits * fairRate;
   const numShops = shops.length;
 
-  // Total Bill = Total Charge + SSCL Tax
-  const totalBill = totalCharge + ssclTax;
+  // CEB Total Bill = Total Charge + SSCL Tax (from CEB bill)
+  const cebTotalBill = totalCharge + ssclTax;
+
+  // Fair subtotal (what shops should pay before SSCL at fair rate)
+  const fairSubtotal = fairEnergyTotal + fairFixed;
+  // Fair SSCL (calculated at fair rate)
+  const { sscl: fairSscl, grandTotal: fairGrandTotal } = calculateSSCL(fairSubtotal);
+
+  // Calculate penalty (difference between CEB total bill and fair total)
+  // Penalty = CEB Grand Total - Fair Grand Total (Energy + Fixed + SSCL at fair rate)
+  const penalty = isAboveThreshold ? (cebTotalBill - fairGrandTotal) : 0;
 
   let grandTotal = 0;
 
-  // Build results
+  // Build results - Summary Card
   let outputHTML = `
     <div class="summary-card">
       <h4><i class="bi bi-bar-chart-fill"></i> ${t("summary")}</h4>
-      <div class="row g-2">
+      <div class="row g-2 mb-3">
         <div class="col-4">
           <div class="small opacity-75">${t("totalUnits")}</div>
           <div class="h5 mb-0">${formatCurrency(totalUnits)}</div>
         </div>
         <div class="col-4">
-          <div class="small opacity-75">${t("chargeForUnits")}</div>
-          <div class="h5 mb-0">${APP_CONFIG.currencySymbol} ${formatCurrency(
-    chargeForUnits
-  )}</div>
+          <div class="small opacity-75">${t("usageThreshold")}</div>
+          <div class="h5 mb-0">${formatCurrency(threshold)}</div>
         </div>
         <div class="col-4">
-          <div class="small opacity-75">${t("energyCostPerUnit")}</div>
-          <div class="h5 mb-0">${APP_CONFIG.currencySymbol} ${formatCurrency(
-    unitCost
-  )}</div>
+          <div class="small opacity-75">${t("thresholdStatus")}</div>
+          <div class="h5 mb-0 ${isAboveThreshold ? 'text-danger' : 'text-success'}">
+            ${isAboveThreshold ? '<i class="bi bi-exclamation-triangle"></i>' : '<i class="bi bi-check-circle"></i>'}
+            ${isAboveThreshold ? t("aboveThreshold").split(" (")[0] : t("belowThreshold").split(" (")[0]}
+          </div>
+        </div>
+      </div>
+      <div class="row g-2">
+        <div class="col-4">
+          <div class="small opacity-75">${t("fairRate")}</div>
+          <div class="h6 mb-0">${APP_CONFIG.currencySymbol} ${formatCurrency(fairRate)}/unit</div>
+        </div>
+        <div class="col-4">
+          <div class="small opacity-75">${t("fairFixed")}</div>
+          <div class="h6 mb-0">${APP_CONFIG.currencySymbol} ${formatCurrency(fairFixed)}</div>
+        </div>
+        <div class="col-4">
+          <div class="small opacity-75">${t("cebTotalBill")}</div>
+          <div class="h6 mb-0">${APP_CONFIG.currencySymbol} ${formatCurrency(cebTotalBill)}</div>
         </div>
       </div>
     </div>
   `;
 
-  shops.forEach((shop, i) => {
-    const shopEnergyCost = shop.units * unitCost;
-    let shopFixedCharge = 0;
-    let shopSsclTax = 0;
-
-    // Calculate Fixed Charge share
+  // Shop calculations - with FAIR breaker penalty logic
+  // If a shop individually exceeds threshold (breaker), they pay:
+  // 1. High rate for ALL their units
+  // 2. Fixed charge PENALTY ONLY (Rs. 1,100) - NOT their fair share
+  // 3. Their fair share is redistributed to innocent shops (using same split method)
+  // 4. SSCL on their subtotal
+  
+  // Calculate redistribution amounts
+  const innocentShops = shops.filter(s => s.units <= threshold);
+  const numInnocent = innocentShops.length;
+  const numBreakers = breakers.length;
+  const totalInnocentUnits = innocentShops.reduce((sum, s) => sum + s.units, 0);
+  
+  // Breaker's fair share to redistribute (if any breakers exist)
+  let breakerFairShareTotal = 0;
+  if (isAboveThreshold && hasBreaker && numInnocent > 0) {
+    // Calculate total fair fixed share that breakers would have paid
     if (splitMethod === "equal") {
-      shopFixedCharge = fixedCharge / numShops;
+      breakerFairShareTotal = (fairFixed / numShops) * numBreakers;
     } else {
-      shopFixedCharge = (shop.units / totalUnits) * fixedCharge;
+      // Proportional: sum of breaker shares
+      breakerFairShareTotal = breakers.reduce((sum, b) => sum + (b.units / totalUnits) * fairFixed, 0);
+    }
+  }
+  
+  let totalBreakerPenalty = 0; // Track how much breakers are paying extra
+  
+  shops.forEach((shop, i) => {
+    const isBreaker = shop.units > threshold;
+    const shopRate = (isAboveThreshold && isBreaker) ? highRate : fairRate;
+    const shopEnergyCost = shop.units * shopRate;
+    let shopFixedCharge = 0;
+    let shopFixedPenalty = 0; // Fixed charge penalty for breakers
+    let shopRedistribution = 0; // Extra fixed from breaker's share (for innocent)
+
+    if (isAboveThreshold && isBreaker) {
+      // BREAKER: Pays ONLY the penalty, NOT fair share
+      shopFixedCharge = 0; // No fair share
+      shopFixedPenalty = fixedDifference / numBreakers; // Split penalty among breakers
+      totalBreakerPenalty += (shop.units * (highRate - fairRate)) + shopFixedPenalty;
+    } else {
+      // INNOCENT: Pays fair share + redistribution from breaker
+      if (splitMethod === "equal") {
+        shopFixedCharge = fairFixed / numShops;
+        // Equal redistribution
+        if (isAboveThreshold && hasBreaker && numInnocent > 0) {
+          shopRedistribution = breakerFairShareTotal / numInnocent;
+        }
+      } else {
+        // Proportional fixed charge based on usage
+        shopFixedCharge = (shop.units / totalUnits) * fairFixed;
+        // Proportional redistribution based on innocent shop's usage ratio
+        if (isAboveThreshold && hasBreaker && totalInnocentUnits > 0) {
+          shopRedistribution = (shop.units / totalInnocentUnits) * breakerFairShareTotal;
+        }
+      }
     }
 
-    // Calculate SSCL Tax share
-    if (ssclSplitMethod === "equal") {
-      shopSsclTax = ssclTax / numShops;
-    } else {
-      shopSsclTax = (shop.units / totalUnits) * ssclTax;
-    }
+    // Calculate per-shop SSCL: (Energy + Fixed + Penalty/Redistribution) × (2.5/97.5)
+    const shopSubtotal = shopEnergyCost + shopFixedCharge + shopFixedPenalty + shopRedistribution;
+    const shopSsclTax = parseFloat((shopSubtotal * SSCL_FACTOR).toFixed(2));
 
-    const shopTotal = shopEnergyCost + shopFixedCharge + shopSsclTax;
+    const shopTotal = shopSubtotal + shopSsclTax;
     grandTotal += shopTotal;
 
+    const usagePercent = ((shop.units / totalUnits) * 100).toFixed(2);
+
+    // Build shop output with breaker indicator
+    const breakerBadge = (isAboveThreshold && isBreaker) 
+      ? `<span class="badge bg-danger ms-2">${t("thresholdBreaker") || "Threshold Breaker"}</span>` 
+      : '';
+    
+    // Different display for breaker vs innocent shops
+    let fixedChargeDisplay = '';
+    if (isAboveThreshold && isBreaker) {
+      // Breaker: Show only penalty
+      fixedChargeDisplay = `
+          <div class="col-6 text-danger">${t("fixedPenalty") || "Fixed Charge Penalty"}:</div>
+          <div class="col-6 text-end text-danger">${APP_CONFIG.currencySymbol} ${formatCurrency(shopFixedPenalty)}</div>
+      `;
+    } else if (isAboveThreshold && hasBreaker && shopRedistribution > 0) {
+      // Innocent with redistribution: Show base + redistributed
+      fixedChargeDisplay = `
+          <div class="col-6">${t("fixedChargeLabel")} (${splitMethod === "equal" ? t("equal") : t("proportional")}):</div>
+          <div class="col-6 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(shopFixedCharge)}</div>
+          
+          <div class="col-6 text-info">${t("redistributedFixed") || "Redistributed Fixed"}:</div>
+          <div class="col-6 text-end text-info">+ ${APP_CONFIG.currencySymbol} ${formatCurrency(shopRedistribution)}</div>
+      `;
+    } else {
+      // Normal: Just fixed charge
+      fixedChargeDisplay = `
+          <div class="col-6">${t("fixedChargeLabel")} (${splitMethod === "equal" ? t("equal") : t("proportional")}):</div>
+          <div class="col-6 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(shopFixedCharge)}</div>
+      `;
+    }
+    
     outputHTML += `
-      <div class="shop-block">
-        <h5><i class="bi bi-shop"></i> ${shop.name}</h5>
+      <div class="shop-block ${(isAboveThreshold && isBreaker) ? 'border-danger' : ''}">
+        <h5><i class="bi bi-shop"></i> ${shop.name}${breakerBadge}</h5>
         <div class="row g-2 small">
           <div class="col-6">${t("unitsConsumed")}:</div>
-          <div class="col-6 text-end">${formatCurrency(shop.units)}</div>
+          <div class="col-6 text-end">${formatCurrency(shop.units)} (${usagePercent}%)</div>
           
-          <div class="col-6">${t("energyCost")}:</div>
-          <div class="col-6 text-end">${
-            APP_CONFIG.currencySymbol
-          } ${formatCurrency(shopEnergyCost)}</div>
+          <div class="col-6">${t("energyCost")} (@ ${APP_CONFIG.currencySymbol} ${formatCurrency(shopRate)}${(isAboveThreshold && isBreaker) ? ' <span class="text-danger">High</span>' : ''}):</div>
+          <div class="col-6 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(shopEnergyCost)}</div>
           
-          <div class="col-6">${t("fixedChargeLabel")} (${
-      splitMethod === "equal" ? t("equal") : t("proportional")
-    }):</div>
-          <div class="col-6 text-end">${
-            APP_CONFIG.currencySymbol
-          } ${formatCurrency(shopFixedCharge)}</div>
+          ${fixedChargeDisplay}
           
-          <div class="col-6">${t("ssclTaxLabel")} (${
-      ssclSplitMethod === "equal" ? t("equal") : t("proportional")
-    }):</div>
-          <div class="col-6 text-end">${
-            APP_CONFIG.currencySymbol
-          } ${formatCurrency(shopSsclTax)}</div>
+          <div class="col-6">${t("ssclTaxLabel")} (${formatCurrency(shopSubtotal)} × 2.5/97.5):</div>
+          <div class="col-6 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(shopSsclTax)}</div>
           
           <div class="col-12"><hr class="my-2"></div>
           
           <div class="col-6"><strong>${t("totalBillLabel")}:</strong></div>
-          <div class="col-6 text-end result-highlight">${
-            APP_CONFIG.currencySymbol
-          } ${formatCurrency(shopTotal)}</div>
+          <div class="col-6 text-end result-highlight">${APP_CONFIG.currencySymbol} ${formatCurrency(shopTotal)}</div>
         </div>
       </div>
     `;
   });
 
+  // Calculate remaining building owner penalty (after breaker contributions)
+  const remainingPenalty = isAboveThreshold ? Math.max(0, cebTotalBill - grandTotal) : 0;
+
+  // Building Owner Penalty Section - Shows breakdown with breaker contributions
+  if (isAboveThreshold && remainingPenalty > 0) {
+    outputHTML += `
+      <div class="alert alert-warning mt-3">
+        <h5><i class="bi bi-exclamation-triangle-fill"></i> ${t("buildingOwnerPenalty")}</h5>
+        <div class="row g-2 small">
+          <div class="col-8">${t("cebTotalBill")}:</div>
+          <div class="col-4 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(cebTotalBill)}</div>
+          
+          <div class="col-8">${t("totalFromShops")} (incl. breaker penalties):</div>
+          <div class="col-4 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(grandTotal)}</div>
+          
+          <div class="col-12"><hr class="my-1"></div>
+          
+          <div class="col-8"><strong>${t("remainingGap") || "Remaining Gap"}:</strong></div>
+          <div class="col-4 text-end"><strong class="text-warning">${APP_CONFIG.currencySymbol} ${formatCurrency(remainingPenalty)}</strong></div>
+        </div>
+        <div class="mt-2 small text-muted">
+          <i class="bi bi-info-circle"></i> ${t("remainingGapExplanation") || "This is the remaining difference after breaker shops paid their penalties. This amount is due to innocent shops using electricity at high CEB rates."}
+        </div>
+      </div>
+    `;
+  } else if (isAboveThreshold && hasBreaker) {
+    // Breakers covered everything
+    outputHTML += `
+      <div class="alert alert-success mt-3">
+        <i class="bi bi-check-circle-fill"></i> <strong>${t("breakersCoveredPenalty") || "Breaker Shops Covered the Penalty"}</strong>
+        <div class="small text-muted mt-1">
+          ${t("breakerPaidExtra") || "Threshold breaker shops paid"}: ${APP_CONFIG.currencySymbol} ${formatCurrency(totalBreakerPenalty)} ${t("extraForCausingHighRate") || "extra for causing high rate charges."}
+        </div>
+      </div>
+    `;
+  } else if (!isAboveThreshold) {
+    outputHTML += `
+      <div class="alert alert-success mt-3">
+        <i class="bi bi-check-circle-fill"></i> <strong>${t("noPenalty")}</strong>
+        <div class="small text-muted mt-1">
+          ${t("totalUnits")}: ${formatCurrency(totalUnits)} ≤ ${t("usageThreshold")}: ${formatCurrency(threshold)}
+        </div>
+      </div>
+    `;
+  } else {
+    // Above threshold but no breaker (collective breach)
+    outputHTML += `
+      <div class="alert alert-danger mt-3">
+        <h5><i class="bi bi-exclamation-triangle-fill"></i> ${t("collectiveBreach") || "Collective Threshold Breach"}</h5>
+        <div class="row g-2 small">
+          <div class="col-8">${t("cebTotalBill")}:</div>
+          <div class="col-4 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(cebTotalBill)}</div>
+          
+          <div class="col-8">${t("totalFromShops")}:</div>
+          <div class="col-4 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(grandTotal)}</div>
+          
+          <div class="col-12"><hr class="my-1"></div>
+          
+          <div class="col-8"><strong>${t("buildingOwnerPenalty")}:</strong></div>
+          <div class="col-4 text-end"><strong class="text-danger">${APP_CONFIG.currencySymbol} ${formatCurrency(penalty)}</strong></div>
+        </div>
+        <div class="mt-2 small text-muted">
+          <i class="bi bi-info-circle"></i> ${t("collectiveBreachExplanation") || "No single shop exceeded the threshold. The collective usage caused the high rate. Building owner absorbs the penalty."}
+        </div>
+      </div>
+    `;
+  }
+
   // Verification row
+  const totalCollected = grandTotal;
+  const expectedTotal = cebTotalBill - penalty;
+  
   outputHTML += `
     <div class="alert alert-info mt-3">
-      <i class="bi bi-check-circle"></i> 
-      <strong>Verification:</strong> Sum of all shop bills = ${
-        APP_CONFIG.currencySymbol
-      } ${formatCurrency(grandTotal)} 
-      (${t("grandTotal")}: ${APP_CONFIG.currencySymbol} ${formatCurrency(
-    totalBill
-  )})
+      <i class="bi bi-calculator"></i> 
+      <strong>Verification:</strong>
+      <div class="row g-1 small mt-2">
+        <div class="col-8">${t("totalFromShops")}${hasBreaker && isAboveThreshold ? ' (incl. breaker penalties)' : ''}:</div>
+        <div class="col-4 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(totalCollected)}</div>
+        
+        ${isAboveThreshold && remainingPenalty > 0 ? `
+        <div class="col-8">${t("buildingOwnerPenalty")} (${t("remainingGap") || "Remaining Gap"}):</div>
+        <div class="col-4 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(remainingPenalty)}</div>
+        ` : ''}
+        
+        <div class="col-12"><hr class="my-1"></div>
+        
+        <div class="col-8"><strong>${t("grandTotal")}:</strong></div>
+        <div class="col-4 text-end"><strong>${APP_CONFIG.currencySymbol} ${formatCurrency(totalCollected + remainingPenalty)}</strong></div>
+        
+        <div class="col-8">${t("cebTotalBill")}:</div>
+        <div class="col-4 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(cebTotalBill)}</div>
+      </div>
     </div>
   `;
 
@@ -447,10 +750,15 @@ const updateUILanguage = () => {
 const resetForm = () => {
   $("#totalCharge").value = 2350;
   $("#fixedCharge").value = 500;
-  $("#ssclTax").value = 60.26;
+  $("#billingDays").value = 30;
+  $("#fairRate").value = 25;
+  $("#fairFixed").value = 500;
   $("#splitMethod").value = "equal";
   $("#ssclSplitMethod").value = "proportional";
   $("#output").innerHTML = "";
+
+  // Recalculate SSCL Tax
+  updateSSCLTax();
 
   // Reset shops
   $("#shopInputs").innerHTML = "";
@@ -480,12 +788,18 @@ const init = () => {
   // Update UI text
   updateUILanguage();
 
+  // Calculate initial SSCL Tax
+  updateSSCLTax();
+
   // Event listeners
   $("#darkToggle").addEventListener("change", toggleDarkMode);
   $("#languageSelect").addEventListener("change", setLanguage);
   $("#addShopBtn").addEventListener("click", () => addShop());
   $("#resetBtn").addEventListener("click", resetForm);
   $("#printBtn").addEventListener("click", () => window.print());
+
+  // Auto-calculate SSCL when Total Charge changes
+  $("#totalCharge").addEventListener("input", updateSSCLTax);
 
   // Form submission
   $("#calculatorForm").addEventListener("submit", (e) => {
