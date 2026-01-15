@@ -1,0 +1,19 @@
+CATEGORY,LABEL,VALUE,DESCRIPTION,,,
+INPUT,Total Bill Charge,8400,<-- Enter Total Bill Amount,,,
+INPUT,Fixed Charge,1600,<-- Enter Fixed Charge,,,
+INPUT,SSCL Tax,215.38,<-- SSCL Tax Auto Adjest,,,
+INPUT,Shop 01 Units,40,<-- Enter Shop 1 Units,,,
+INPUT,Shop 02 Units,150,<-- Enter Shop 2 Units,,,
+INPUT,Shop 03 Units,10,<-- Enter Shop 3 Units,,,
+FAIR_RATE,Fair Unit Price,25,<-- Standard Rate (Below 180 Tier),,,
+FAIR_FIXED,Total Fair Fixed,500,<-- Standard Fixed (Below 180 Tier),,,
+,Total Units,200,(Automatic),,,
+,,,,,,
+RESULTS,SHOP NAME,UNITS,ENERGY (FAIR),FIXED (FAIR),SSCL TAX,TOTAL PAYABLE
+DATA,Shop 01,40,1000,100,43.076,1143.076
+DATA,Shop 02,150,3750,375,161.535,4286.535
+DATA,Shop 03,10,250,25,10.769,285.769
+,,,,,,
+PENALTY,Building Owner Share,-,2900,"<-- THIS IS THE ""SHARED PENALTY""",,
+,,,,,,
+VERIFY,Total Collected,5715.38,Grand Total,8615.38,STATUS,CORRECT

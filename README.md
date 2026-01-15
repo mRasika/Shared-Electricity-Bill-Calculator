@@ -12,7 +12,10 @@ A simple, user-friendly web application to calculate and split shared electricit
 - **Smart Bill Splitting** - Split electricity bills based on actual unit consumption
 - **SSCL Tax Support** - Includes SSCL (Social Security Contribution Levy) tax in calculations
 - **Equal Split** - Fixed charges and SSCL tax divided equally among all shops
-- **Proportional Split** - Hidden option to split charges based on usage (see Developer Notes)
+- **Proportional Split** - Option to split charges based on usage percentage
+- **🆕 Building Owner Penalty Calculation** - Calculates penalty when usage exceeds GP1 threshold
+- **🆕 Dynamic Threshold** - Automatically adjusts threshold based on billing days
+- **🆕 Fair Rate Protection** - Shops pay fair market rate; building owner absorbs excess charges
 - **Multi-Shop Support** - Add unlimited shops with custom names
 - **Dark Mode** - Eye-friendly dark theme option
 - **Multi-Language** - Supports English and සිංහල (Sinhala)
@@ -27,27 +30,66 @@ Simply open the `index.html` file in any modern web browser to start using the c
 
 ## 📖 How to Use
 
-1. **Enter Total Charge** - Input the total charge amount from your bill (includes fixed charge)
+1. **Enter Total Charge** - Input the total charge amount from your CEB bill (includes fixed charge)
 2. **Enter Fixed Charge** - Input the fixed/service charges from your bill
-3. **Enter SSCL Tax** - Input the SSCL tax amount from your bill (default: Rs. 60.26)
-4. **Add Shops** - Add shops and enter the units consumed by each
-5. **Calculate** - Click the Calculate button to see the breakdown
-6. **Print/Share** - Use the Print button to save or print the results
+3. **Enter SSCL Tax** - Input the SSCL tax amount from your bill
+4. **Enter Billing Days** - Number of days in the billing period (default: 30)
+5. **Set Fair Rate** - Standard rate per unit for shops (default: Rs. 25)
+6. **Set Fair Fixed** - Standard fixed charge to share among shops (default: Rs. 500)
+7. **Add Shops** - Add shops and enter the units consumed by each
+8. **Calculate** - Click the Calculate button to see the breakdown
+9. **Print/Share** - Use the Print button to save or print the results
 
 ## 🧮 Calculation Formula
 
+### Standard Calculation (Fair Rate)
 ```
-Charge for Units = Total Charge - Fixed Charge
-Unit Cost = Charge for Units ÷ Total Units
-
-For each shop:
-├── Energy Cost = Shop Units × Unit Cost
-├── Fixed Charge Share = Fixed Charge ÷ Number of Shops (Equal Split)
-├── SSCL Tax Share = (Shop Units ÷ Total Units) × SSCL Tax (Proportional Split)
+For each shop (Protected at Fair Rate):
+├── Energy Cost = Shop Units × Fair Rate (Rs. 25/unit)
+├── Fixed Charge Share = Fair Fixed ÷ Number of Shops (Equal Split)
+│   OR = (Shop Units ÷ Total Units) × Fair Fixed (Proportional Split)
+├── SSCL Tax Share = (Shop Units ÷ Total Units) × SSCL Tax
 └── Shop Total = Energy Cost + Fixed Charge Share + SSCL Tax Share
+```
+
+### Penalty Calculation (GP1 Tariff)
+```
+Dynamic Threshold = (180 ÷ 30) × Billing Days
+
+If Total Units > Threshold:
+├── CEB charges HIGH RATE (Rs. 32/unit, Rs. 1,500 fixed)
+├── Shops still pay FAIR RATE (Rs. 25/unit, Rs. 500 fixed shared)
+└── Building Owner Penalty = Total Bill Charge - Fair Energy Total - Fair Fixed
+
+Building Owner absorbs the penalty (cost of not having separate meters)
+```
+
+### SSCL Tax Formula (Auto-Calculated)
+
+The SSCL (Social Security Contribution Levy) is **2.5%** applied to the Total Bill Amount:
+
+$$\text{SSCL Tax} = \text{Total Charge} \times 0.025$$
+
+**Example Calculation:**
+```
+Total Charge = Rs. 2,350.00
+SSCL Tax = 2,350 × 0.025 = Rs. 58.75
+Grand Total = 2,350 + 58.75 = Rs. 2,408.75
+```
+
+**High Usage Example (179 Units / 29 Days):**
+```
+Energy Charge = 179 × 32.00 = Rs. 5,728.00
+Fixed Charge = Rs. 1,500.00
+Total Charge = Rs. 7,228.00
+
+SSCL Tax = 7,228.00 × 0.025 = Rs. 180.70
+Grand Total = 7,228.00 + 180.70 = Rs. 7,408.70
+```
+
+> **Note:** The SSCL Tax field is automatically calculated when you enter the Total Charge.
 
 Total Bill = Total Charge + SSCL Tax
-```
 
 ## 📊 Example Use Case
 
@@ -136,6 +178,62 @@ Grand Total = 1,823.98 + 553.70 + 32.57 = Rs. 2,410.25 ≈ Rs. 2,410.26 ✓
 >
 > - **Equal Split** - Simpler, benefits high-usage shops
 > - **Proportional Split** - Fairer, low-usage shops pay less of the shared charges
+
+---
+
+## 🚨 High Usage Example (With Penalty)
+
+When total consumption exceeds the GP1 threshold, CEB charges higher rates. Here's how the calculator handles this:
+
+### Input Values (High Usage)
+| Parameter | Value |
+|-----------|-------|
+| Total Charge (LKR) | Rs. 8,400.00 |
+| Fixed Charge (LKR) | Rs. 1,600.00 |
+| SSCL Tax (LKR) | Rs. 215.38 |
+| Billing Days | 30 |
+| Fair Unit Rate | Rs. 25.00 |
+| Fair Fixed Charge | Rs. 500.00 |
+| Total Units | 200 |
+| Shop 1 Usage | 40 units |
+| Shop 2 Usage | 150 units |
+| Shop 3 Usage | 10 units |
+
+### Threshold Check
+```
+Threshold = (180 ÷ 30) × 30 = 180 units
+Total Units = 200 > 180 ⚠️ ABOVE THRESHOLD - Penalty Applies!
+```
+
+### Shop Calculations (Protected at Fair Rate)
+
+| Shop | Units | Usage % | Energy Cost (Fair) | Fixed Share (Prop) | SSCL Tax Share | Total |
+|------|-------|---------|--------------------|--------------------|----------------|-------|
+| Shop 1 | 40 | 20% | 40 × 25 = Rs. 1,000.00 | (40/200) × 500 = Rs. 100.00 | (40/200) × 215.38 = Rs. 43.08 | **Rs. 1,143.08** |
+| Shop 2 | 150 | 75% | 150 × 25 = Rs. 3,750.00 | (150/200) × 500 = Rs. 375.00 | (150/200) × 215.38 = Rs. 161.54 | **Rs. 4,286.54** |
+| Shop 3 | 10 | 5% | 10 × 25 = Rs. 250.00 | (10/200) × 500 = Rs. 25.00 | (10/200) × 215.38 = Rs. 10.77 | **Rs. 285.77** |
+
+### Building Owner Penalty Calculation
+```
+CEB Total Bill = Total Charge + SSCL = 8,400 + 215.38 = Rs. 8,615.38
+Fair Energy Total = 200 × 25 = Rs. 5,000.00
+Fair Fixed Charge = Rs. 500.00
+
+Building Owner Penalty = Total Charge - Fair Energy - Fair Fixed
+                       = 8,400 - 5,000 - 500 = Rs. 2,900.00 🚨
+```
+
+### Summary
+| Item | Amount |
+|------|--------|
+| Total from Shops | Rs. 5,715.38 |
+| Building Owner Penalty | Rs. 2,900.00 |
+| **Grand Total** | **Rs. 8,615.38** |
+| CEB Total Bill | Rs. 8,615.38 ✓ |
+
+> **Key Point:** The Rs. 2,900 penalty is the "cost of not having separate meters". Shops are protected and pay fair market rate, while the building owner absorbs the excess charges from CEB's tiered pricing.
+
+---
 
 ## 🛠️ Installation
 
