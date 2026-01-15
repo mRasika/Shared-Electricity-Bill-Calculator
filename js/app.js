@@ -99,6 +99,7 @@ const translations = {
     // Breaker penalty translations
     thresholdBreaker: "Threshold Breaker",
     fixedPenalty: "Fixed Charge Penalty",
+    redistributedFixed: "Redistributed Fixed",
     remainingGap: "Remaining Gap",
     remainingGapExplanation: "This is the remaining difference after breaker shops paid their penalties. Due to innocent shops using electricity at CEB high rates.",
     breakersCoveredPenalty: "Breaker Shops Covered the Penalty",
@@ -164,6 +165,7 @@ const translations = {
     // Breaker penalty translations
     thresholdBreaker: "සීමාව කඩකරන්නා",
     fixedPenalty: "ස්ථිර ගාස්තු දඩය",
+    redistributedFixed: "නැවත බෙදා හරින ලද ස්ථිර",
     remainingGap: "ඉතිරි වෙනස",
     remainingGapExplanation: "මෙය සීමාව කඩකළ වෙළඳසැල් තම දඩය ගෙවීමෙන් පසු ඉතිරි වෙනසයි. අහිංසක වෙළඳසැල් CEB ඉහළ මිලට විදුලිය භාවිතා කළ නිසා.",
     breakersCoveredPenalty: "සීමාව කඩකළ වෙළඳසැල් දඩය ගෙවා ඇත",
@@ -464,12 +466,35 @@ const calculate = () => {
     </div>
   `;
 
-  // Shop calculations - with breaker penalty logic
-  // If a shop individually exceeds threshold, they pay:
+  // Shop calculations - with FAIR breaker penalty logic
+  // If a shop individually exceeds threshold (breaker), they pay:
   // 1. High rate for ALL their units
-  // 2. Their share of fair fixed charge
-  // 3. Fixed charge difference (highFixed - fairFixed)
+  // 2. Fixed charge PENALTY ONLY (Rs. 1,100) - NOT their fair share
+  // 3. Their fair share is redistributed to innocent shops
   // 4. SSCL on their subtotal
+  
+  // Calculate redistribution amounts
+  const innocentShops = shops.filter(s => s.units <= threshold);
+  const numInnocent = innocentShops.length;
+  const numBreakers = breakers.length;
+  
+  // Breaker's fair share to redistribute (if any breakers exist)
+  let breakerFairShareTotal = 0;
+  if (isAboveThreshold && hasBreaker && numInnocent > 0) {
+    // Calculate total fair fixed share that breakers would have paid
+    if (splitMethod === "equal") {
+      breakerFairShareTotal = (fairFixed / numShops) * numBreakers;
+    } else {
+      // Proportional: sum of breaker shares
+      breakerFairShareTotal = breakers.reduce((sum, b) => sum + (b.units / totalUnits) * fairFixed, 0);
+    }
+  }
+  
+  // Per innocent shop redistribution amount
+  const redistributionPerInnocent = (numInnocent > 0 && breakerFairShareTotal > 0) 
+    ? breakerFairShareTotal / numInnocent 
+    : 0;
+  
   let totalBreakerPenalty = 0; // Track how much breakers are paying extra
   
   shops.forEach((shop, i) => {
@@ -477,23 +502,29 @@ const calculate = () => {
     const shopRate = (isAboveThreshold && isBreaker) ? highRate : fairRate;
     const shopEnergyCost = shop.units * shopRate;
     let shopFixedCharge = 0;
-    let shopFixedPenalty = 0; // Extra fixed charge for breakers
+    let shopFixedPenalty = 0; // Fixed charge penalty for breakers
+    let shopRedistribution = 0; // Extra fixed from breaker's share (for innocent)
 
-    // Calculate Fixed Charge share (from Fair Fixed, not CEB fixed)
-    if (splitMethod === "equal") {
-      shopFixedCharge = fairFixed / numShops;
-    } else {
-      shopFixedCharge = (shop.units / totalUnits) * fairFixed;
-    }
-
-    // Breaker pays the fixed charge difference
     if (isAboveThreshold && isBreaker) {
-      shopFixedPenalty = fixedDifference / breakers.length; // Split among breakers
+      // BREAKER: Pays ONLY the penalty, NOT fair share
+      shopFixedCharge = 0; // No fair share
+      shopFixedPenalty = fixedDifference / numBreakers; // Split penalty among breakers
       totalBreakerPenalty += (shop.units * (highRate - fairRate)) + shopFixedPenalty;
+    } else {
+      // INNOCENT: Pays fair share + redistribution from breaker
+      if (splitMethod === "equal") {
+        shopFixedCharge = fairFixed / numShops;
+      } else {
+        shopFixedCharge = (shop.units / totalUnits) * fairFixed;
+      }
+      // Add redistributed amount from breaker's share
+      if (isAboveThreshold && hasBreaker) {
+        shopRedistribution = redistributionPerInnocent;
+      }
     }
 
-    // Calculate per-shop SSCL: (Energy + Fixed + Penalty) × (2.5/97.5)
-    const shopSubtotal = shopEnergyCost + shopFixedCharge + shopFixedPenalty;
+    // Calculate per-shop SSCL: (Energy + Fixed + Penalty/Redistribution) × (2.5/97.5)
+    const shopSubtotal = shopEnergyCost + shopFixedCharge + shopFixedPenalty + shopRedistribution;
     const shopSsclTax = parseFloat((shopSubtotal * SSCL_FACTOR).toFixed(2));
 
     const shopTotal = shopSubtotal + shopSsclTax;
@@ -506,6 +537,31 @@ const calculate = () => {
       ? `<span class="badge bg-danger ms-2">${t("thresholdBreaker") || "Threshold Breaker"}</span>` 
       : '';
     
+    // Different display for breaker vs innocent shops
+    let fixedChargeDisplay = '';
+    if (isAboveThreshold && isBreaker) {
+      // Breaker: Show only penalty
+      fixedChargeDisplay = `
+          <div class="col-6 text-danger">${t("fixedPenalty") || "Fixed Charge Penalty"}:</div>
+          <div class="col-6 text-end text-danger">${APP_CONFIG.currencySymbol} ${formatCurrency(shopFixedPenalty)}</div>
+      `;
+    } else if (isAboveThreshold && hasBreaker && shopRedistribution > 0) {
+      // Innocent with redistribution: Show base + redistributed
+      fixedChargeDisplay = `
+          <div class="col-6">${t("fixedChargeLabel")} (${splitMethod === "equal" ? t("equal") : t("proportional")}):</div>
+          <div class="col-6 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(shopFixedCharge)}</div>
+          
+          <div class="col-6 text-info">${t("redistributedFixed") || "Redistributed Fixed"}:</div>
+          <div class="col-6 text-end text-info">+ ${APP_CONFIG.currencySymbol} ${formatCurrency(shopRedistribution)}</div>
+      `;
+    } else {
+      // Normal: Just fixed charge
+      fixedChargeDisplay = `
+          <div class="col-6">${t("fixedChargeLabel")} (${splitMethod === "equal" ? t("equal") : t("proportional")}):</div>
+          <div class="col-6 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(shopFixedCharge)}</div>
+      `;
+    }
+    
     outputHTML += `
       <div class="shop-block ${(isAboveThreshold && isBreaker) ? 'border-danger' : ''}">
         <h5><i class="bi bi-shop"></i> ${shop.name}${breakerBadge}</h5>
@@ -516,13 +572,7 @@ const calculate = () => {
           <div class="col-6">${t("energyCost")} (@ ${APP_CONFIG.currencySymbol} ${formatCurrency(shopRate)}${(isAboveThreshold && isBreaker) ? ' <span class="text-danger">High</span>' : ''}):</div>
           <div class="col-6 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(shopEnergyCost)}</div>
           
-          <div class="col-6">${t("fixedChargeLabel")} (${splitMethod === "equal" ? t("equal") : t("proportional")}):</div>
-          <div class="col-6 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(shopFixedCharge)}</div>
-          
-          ${(isAboveThreshold && isBreaker && shopFixedPenalty > 0) ? `
-          <div class="col-6 text-danger">${t("fixedPenalty") || "Fixed Charge Penalty"}:</div>
-          <div class="col-6 text-end text-danger">${APP_CONFIG.currencySymbol} ${formatCurrency(shopFixedPenalty)}</div>
-          ` : ''}
+          ${fixedChargeDisplay}
           
           <div class="col-6">${t("ssclTaxLabel")} (${formatCurrency(shopSubtotal)} × 2.5/97.5):</div>
           <div class="col-6 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(shopSsclTax)}</div>
