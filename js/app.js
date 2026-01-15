@@ -20,7 +20,7 @@ const APP_CONFIG = {
     language: "electricityCalc_language",
     lastCalculation: "electricityCalc_lastData",
   },
-  // GP1 Tariff Configuration (CEB Rates)
+  // GP1 Tariff Configuration (CEB Rates - June 2025)
   gp1Tariff: {
     baseThreshold: 180, // Units per 30 days
     baseDays: 30,
@@ -29,10 +29,11 @@ const APP_CONFIG = {
       fixedCharge: 500.00,
     },
     highRate: {
-      unitPrice: 32.00,
-      fixedCharge: 1500.00,
+      unitPrice: 34.00,
+      fixedCharge: 1600.00,
     },
-    ssclMultiplier: 0.025, // 2.5% SSCL rate
+    // SSCL is 2.5% of final bill, so: SSCL = Subtotal × (2.5/97.5)
+    ssclFactor: 2.5 / 97.5, // = 0.025641...
   },
 };
 
@@ -49,8 +50,8 @@ const translations = {
       "Total charge amount from your bill (includes fixed charge)",
     fixedCharge: "Fixed Charge (LKR)",
     fixedChargeHelp: "Fixed charges from your bill",
-    ssclTax: "SSCL Tax (LKR)",
-    ssclTaxHelp: "Auto-calculated: Total Charge × 2.5%",
+    ssclTax: "CEB SSCL Tax (LKR)",
+    ssclTaxHelp: "CEB's SSCL: Subtotal × (2.5/97.5)",
     splitMethod: "Fixed Charge Split Method",
     splitMethodHelp: "Choose how to divide the fixed charges",
     ssclSplitMethod: "SSCL Tax Split Method",
@@ -104,8 +105,8 @@ const translations = {
     totalChargeHelp: "ඔබගේ බිල්පතේ මුළු ගාස්තු මුදල (ස්ථිර ගාස්තු ඇතුළුව)",
     fixedCharge: "ස්ථිර ගාස්තුව (රු.)",
     fixedChargeHelp: "ඔබගේ බිල්පතේ ස්ථිර ගාස්තු",
-    ssclTax: "SSCL බදු (රු.)",
-    ssclTaxHelp: "ස්වයංක්‍රීය ගණනය: මුළු ගාස්තුව × 2.5%",
+    ssclTax: "CEB SSCL බදු (රු.)",
+    ssclTaxHelp: "CEB SSCL: උප එකතුව × (2.5/97.5)",
     splitMethod: "ස්ථිර ගාස්තු බෙදීමේ ක්‍රමය",
     splitMethodHelp: "ස්ථිර ගාස්තු බෙදන ආකාරය තෝරන්න",
     ssclSplitMethod: "SSCL බදු බෙදීමේ ක්‍රමය",
@@ -176,29 +177,40 @@ const formatCurrency = (amount) => {
 };
 
 // ============================================
-// SSCL Tax Calculation (2.5% of Total Charge)
+// SSCL Tax Calculation (CEB Official Formula)
+// SSCL is 2.5% of the FINAL bill, not subtotal
+// Formula: SSCL = Subtotal × (2.5 / 97.5)
 // ============================================
-const SSCL_RATE = 0.025; // 2.5%
+const SSCL_FACTOR = 2.5 / 97.5; // = 0.025641...
 
 /**
- * Calculate SSCL Tax based on CEB formula
- * SSCL = (Energy Charge + Fixed Charge) × 2.5%
- * Since Total Charge = Energy Charge + Fixed Charge
- * SSCL = Total Charge × 2.5%
+ * Calculate SSCL Tax based on official CEB formula
+ * SSCL = (Energy Charge + Fixed Charge) × (2.5 / 97.5)
  * 
- * @param {number} totalCharge - Total charge from bill (Energy + Fixed)
+ * @param {number} subtotal - Subtotal (Energy + Fixed) before SSCL
  * @returns {object} - { sscl, grandTotal }
  */
-const calculateSSCL = (totalCharge) => {
-  const ssclAmount = totalCharge * SSCL_RATE;
+const calculateSSCL = (subtotal) => {
+  const ssclAmount = subtotal * SSCL_FACTOR;
   return {
     sscl: parseFloat(ssclAmount.toFixed(2)),
-    grandTotal: parseFloat((totalCharge + ssclAmount).toFixed(2))
+    grandTotal: parseFloat((subtotal + ssclAmount).toFixed(2))
   };
 };
 
 /**
- * Auto-update SSCL Tax field when Total Charge changes
+ * Calculate per-shop SSCL based on their energy + fixed share
+ * @param {number} shopEnergy - Shop's energy cost
+ * @param {number} shopFixedShare - Shop's share of fixed charge
+ * @returns {number} - Shop's SSCL amount
+ */
+const calculateShopSSCL = (shopEnergy, shopFixedShare) => {
+  const shopSubtotal = shopEnergy + shopFixedShare;
+  return parseFloat((shopSubtotal * SSCL_FACTOR).toFixed(2));
+};
+
+/**
+ * Auto-update CEB SSCL Tax display when Total Charge changes
  */
 const updateSSCLTax = () => {
   const totalCharge = parseFloat($("#totalCharge")?.value) || 0;
@@ -366,12 +378,17 @@ const calculate = () => {
   const fairEnergyTotal = totalUnits * fairRate;
   const numShops = shops.length;
 
-  // CEB Total Bill = Total Charge + SSCL Tax
+  // CEB Total Bill = Total Charge + SSCL Tax (from CEB bill)
   const cebTotalBill = totalCharge + ssclTax;
 
-  // Calculate penalty (difference between CEB charges and fair rate charges)
-  // Penalty = Total Bill Charge - Fair Energy Total - Fair Fixed
-  const penalty = isAboveThreshold ? (totalCharge - fairEnergyTotal - fairFixed) : 0;
+  // Fair subtotal (what shops should pay before SSCL at fair rate)
+  const fairSubtotal = fairEnergyTotal + fairFixed;
+  // Fair SSCL (calculated at fair rate)
+  const { sscl: fairSscl, grandTotal: fairGrandTotal } = calculateSSCL(fairSubtotal);
+
+  // Calculate penalty (difference between CEB total bill and fair total)
+  // Penalty = CEB Grand Total - Fair Grand Total (Energy + Fixed + SSCL at fair rate)
+  const penalty = isAboveThreshold ? (cebTotalBill - fairGrandTotal) : 0;
 
   let grandTotal = 0;
 
@@ -413,11 +430,11 @@ const calculate = () => {
     </div>
   `;
 
-  // Shop calculations - shops pay at FAIR RATE
+  // Shop calculations - shops pay at FAIR RATE with per-shop SSCL
+  // SSCL for each shop = (Shop Energy + Shop Fixed Share) × (2.5/97.5)
   shops.forEach((shop, i) => {
     const shopEnergyCost = shop.units * fairRate; // Using FAIR RATE
     let shopFixedCharge = 0;
-    let shopSsclTax = 0;
 
     // Calculate Fixed Charge share (from Fair Fixed, not CEB fixed)
     if (splitMethod === "equal") {
@@ -426,14 +443,11 @@ const calculate = () => {
       shopFixedCharge = (shop.units / totalUnits) * fairFixed;
     }
 
-    // Calculate SSCL Tax share (proportional from actual SSCL)
-    if (ssclSplitMethod === "equal") {
-      shopSsclTax = ssclTax / numShops;
-    } else {
-      shopSsclTax = (shop.units / totalUnits) * ssclTax;
-    }
+    // Calculate per-shop SSCL: (Energy + Fixed) × (2.5/97.5)
+    const shopSubtotal = shopEnergyCost + shopFixedCharge;
+    const shopSsclTax = calculateShopSSCL(shopEnergyCost, shopFixedCharge);
 
-    const shopTotal = shopEnergyCost + shopFixedCharge + shopSsclTax;
+    const shopTotal = shopSubtotal + shopSsclTax;
     grandTotal += shopTotal;
 
     const usagePercent = ((shop.units / totalUnits) * 100).toFixed(2);
@@ -451,7 +465,7 @@ const calculate = () => {
           <div class="col-6">${t("fixedChargeLabel")} (${splitMethod === "equal" ? t("equal") : t("proportional")}):</div>
           <div class="col-6 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(shopFixedCharge)}</div>
           
-          <div class="col-6">${t("ssclTaxLabel")} (${ssclSplitMethod === "equal" ? t("equal") : t("proportional")}):</div>
+          <div class="col-6">${t("ssclTaxLabel")} (${formatCurrency(shopSubtotal)} × 2.5/97.5):</div>
           <div class="col-6 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(shopSsclTax)}</div>
           
           <div class="col-12"><hr class="my-2"></div>
@@ -477,6 +491,12 @@ const calculate = () => {
           
           <div class="col-8">${t("fairFixed")}:</div>
           <div class="col-4 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(fairFixed)}</div>
+          
+          <div class="col-8">Fair SSCL (${formatCurrency(fairSubtotal)} × 2.5/97.5):</div>
+          <div class="col-4 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(fairSscl)}</div>
+          
+          <div class="col-8"><em>Total at Fair Rate:</em></div>
+          <div class="col-4 text-end"><em>${APP_CONFIG.currencySymbol} ${formatCurrency(fairGrandTotal)}</em></div>
           
           <div class="col-12"><hr class="my-1"></div>
           
