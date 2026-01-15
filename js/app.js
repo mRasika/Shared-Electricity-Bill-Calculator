@@ -96,8 +96,17 @@ const translations = {
     fairEnergyTotal: "Fair Energy Total",
     penaltyCalculation: "Penalty Calculation",
     noPenalty: "No Penalty - Usage is within threshold",
+    // Breaker penalty translations
+    thresholdBreaker: "Threshold Breaker",
+    fixedPenalty: "Fixed Charge Penalty",
+    remainingGap: "Remaining Gap",
+    remainingGapExplanation: "This is the remaining difference after breaker shops paid their penalties. Due to innocent shops using electricity at CEB high rates.",
+    breakersCoveredPenalty: "Breaker Shops Covered the Penalty",
+    breakerPaidExtra: "Threshold breaker shops paid",
+    extraForCausingHighRate: "extra for causing high rate charges",
+    collectiveBreach: "Collective Threshold Breach",
+    collectiveBreachExplanation: "No single shop exceeded the threshold. The collective usage caused the high rate. Building owner absorbs the penalty.",
   },
-  si: {
     title: "බෙදාගත් විදුලි බිල්පත් ගණනය",
     language: "භාෂාව",
     darkMode: "අඳුරු මාදිලිය",
@@ -151,6 +160,16 @@ const translations = {
     fairEnergyTotal: "සාධාරණ බලශක්ති මුළු මුදල",
     penaltyCalculation: "දඩ ගණනය කිරීම",
     noPenalty: "දඩයක් නැත - භාවිතය සීමාව තුළ ඇත",
+    // Breaker penalty translations
+    thresholdBreaker: "සීමාව කඩකරන්නා",
+    fixedPenalty: "ස්ථිර ගාස්තු දඩය",
+    remainingGap: "ඉතිරි වෙනස",
+    remainingGapExplanation: "මෙය සීමාව කඩකළ වෙළඳසැල් තම දඩය ගෙවීමෙන් පසු ඉතිරි වෙනසයි. අහිංසක වෙළඳසැල් CEB ඉහළ මිලට විදුලිය භාවිතා කළ නිසා.",
+    breakersCoveredPenalty: "සීමාව කඩකළ වෙළඳසැල් දඩය ගෙවා ඇත",
+    breakerPaidExtra: "සීමාව කඩකළ වෙළඳසැල් ගෙවූ අමතර මුදල",
+    extraForCausingHighRate: "ඉහළ අනුපාත ගාස්තු ඇති කිරීම සඳහා",
+    collectiveBreach: "සමූහ සීමාව කඩ කිරීම",
+    collectiveBreachExplanation: "තනි වෙළඳසැලක් සීමාව ඉක්මවා නැත. සමූහ භාවිතය ඉහළ අනුපාතයට හේතු විය. ගොඩනැගිලි හිමිකරු දඩය දරයි.",
   },
 };
 
@@ -374,6 +393,20 @@ const calculate = () => {
   const threshold = (APP_CONFIG.gp1Tariff.baseThreshold / APP_CONFIG.gp1Tariff.baseDays) * billingDays;
   const isAboveThreshold = totalUnits > threshold;
 
+  // Identify "breaker" shops - shops that individually exceed the threshold
+  const breakerShops = shops.map((shop, index) => ({
+    ...shop,
+    index,
+    isBreaker: shop.units > threshold
+  }));
+  const breakers = breakerShops.filter(s => s.isBreaker);
+  const hasBreaker = breakers.length > 0;
+
+  // Get high rate from config
+  const highRate = APP_CONFIG.gp1Tariff.highRate.unitPrice;
+  const highFixed = APP_CONFIG.gp1Tariff.highRate.fixedCharge;
+  const fixedDifference = highFixed - fairFixed; // Rs. 1,600 - Rs. 500 = Rs. 1,100
+
   // Fair Rate Calculation for shops
   const fairEnergyTotal = totalUnits * fairRate;
   const numShops = shops.length;
@@ -430,11 +463,20 @@ const calculate = () => {
     </div>
   `;
 
-  // Shop calculations - shops pay at FAIR RATE with per-shop SSCL
-  // SSCL for each shop = (Shop Energy + Shop Fixed Share) × (2.5/97.5)
+  // Shop calculations - with breaker penalty logic
+  // If a shop individually exceeds threshold, they pay:
+  // 1. High rate for ALL their units
+  // 2. Their share of fair fixed charge
+  // 3. Fixed charge difference (highFixed - fairFixed)
+  // 4. SSCL on their subtotal
+  let totalBreakerPenalty = 0; // Track how much breakers are paying extra
+  
   shops.forEach((shop, i) => {
-    const shopEnergyCost = shop.units * fairRate; // Using FAIR RATE
+    const isBreaker = shop.units > threshold;
+    const shopRate = (isAboveThreshold && isBreaker) ? highRate : fairRate;
+    const shopEnergyCost = shop.units * shopRate;
     let shopFixedCharge = 0;
+    let shopFixedPenalty = 0; // Extra fixed charge for breakers
 
     // Calculate Fixed Charge share (from Fair Fixed, not CEB fixed)
     if (splitMethod === "equal") {
@@ -443,27 +485,43 @@ const calculate = () => {
       shopFixedCharge = (shop.units / totalUnits) * fairFixed;
     }
 
-    // Calculate per-shop SSCL: (Energy + Fixed) × (2.5/97.5)
-    const shopSubtotal = shopEnergyCost + shopFixedCharge;
-    const shopSsclTax = calculateShopSSCL(shopEnergyCost, shopFixedCharge);
+    // Breaker pays the fixed charge difference
+    if (isAboveThreshold && isBreaker) {
+      shopFixedPenalty = fixedDifference / breakers.length; // Split among breakers
+      totalBreakerPenalty += (shop.units * (highRate - fairRate)) + shopFixedPenalty;
+    }
+
+    // Calculate per-shop SSCL: (Energy + Fixed + Penalty) × (2.5/97.5)
+    const shopSubtotal = shopEnergyCost + shopFixedCharge + shopFixedPenalty;
+    const shopSsclTax = parseFloat((shopSubtotal * SSCL_FACTOR).toFixed(2));
 
     const shopTotal = shopSubtotal + shopSsclTax;
     grandTotal += shopTotal;
 
     const usagePercent = ((shop.units / totalUnits) * 100).toFixed(2);
 
+    // Build shop output with breaker indicator
+    const breakerBadge = (isAboveThreshold && isBreaker) 
+      ? `<span class="badge bg-danger ms-2">${t("thresholdBreaker") || "Threshold Breaker"}</span>` 
+      : '';
+    
     outputHTML += `
-      <div class="shop-block">
-        <h5><i class="bi bi-shop"></i> ${shop.name}</h5>
+      <div class="shop-block ${(isAboveThreshold && isBreaker) ? 'border-danger' : ''}">
+        <h5><i class="bi bi-shop"></i> ${shop.name}${breakerBadge}</h5>
         <div class="row g-2 small">
           <div class="col-6">${t("unitsConsumed")}:</div>
           <div class="col-6 text-end">${formatCurrency(shop.units)} (${usagePercent}%)</div>
           
-          <div class="col-6">${t("energyCost")} (@ ${APP_CONFIG.currencySymbol} ${formatCurrency(fairRate)}):</div>
+          <div class="col-6">${t("energyCost")} (@ ${APP_CONFIG.currencySymbol} ${formatCurrency(shopRate)}${(isAboveThreshold && isBreaker) ? ' <span class="text-danger">High</span>' : ''}):</div>
           <div class="col-6 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(shopEnergyCost)}</div>
           
           <div class="col-6">${t("fixedChargeLabel")} (${splitMethod === "equal" ? t("equal") : t("proportional")}):</div>
           <div class="col-6 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(shopFixedCharge)}</div>
+          
+          ${(isAboveThreshold && isBreaker && shopFixedPenalty > 0) ? `
+          <div class="col-6 text-danger">${t("fixedPenalty") || "Fixed Charge Penalty"}:</div>
+          <div class="col-6 text-end text-danger">${APP_CONFIG.currencySymbol} ${formatCurrency(shopFixedPenalty)}</div>
+          ` : ''}
           
           <div class="col-6">${t("ssclTaxLabel")} (${formatCurrency(shopSubtotal)} × 2.5/97.5):</div>
           <div class="col-6 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(shopSsclTax)}</div>
@@ -477,43 +535,69 @@ const calculate = () => {
     `;
   });
 
-  // Building Owner Penalty Section
-  if (isAboveThreshold && penalty > 0) {
+  // Calculate remaining building owner penalty (after breaker contributions)
+  const remainingPenalty = isAboveThreshold ? Math.max(0, cebTotalBill - grandTotal) : 0;
+
+  // Building Owner Penalty Section - Shows breakdown with breaker contributions
+  if (isAboveThreshold && remainingPenalty > 0) {
     outputHTML += `
-      <div class="alert alert-danger mt-3">
+      <div class="alert alert-warning mt-3">
         <h5><i class="bi bi-exclamation-triangle-fill"></i> ${t("buildingOwnerPenalty")}</h5>
         <div class="row g-2 small">
-          <div class="col-8">${t("cebTotalBill")} (Total Charge + SSCL):</div>
+          <div class="col-8">${t("cebTotalBill")}:</div>
           <div class="col-4 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(cebTotalBill)}</div>
           
-          <div class="col-8">${t("fairEnergyTotal")} (${formatCurrency(totalUnits)} × ${APP_CONFIG.currencySymbol} ${formatCurrency(fairRate)}):</div>
-          <div class="col-4 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(fairEnergyTotal)}</div>
-          
-          <div class="col-8">${t("fairFixed")}:</div>
-          <div class="col-4 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(fairFixed)}</div>
-          
-          <div class="col-8">Fair SSCL (${formatCurrency(fairSubtotal)} × 2.5/97.5):</div>
-          <div class="col-4 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(fairSscl)}</div>
-          
-          <div class="col-8"><em>Total at Fair Rate:</em></div>
-          <div class="col-4 text-end"><em>${APP_CONFIG.currencySymbol} ${formatCurrency(fairGrandTotal)}</em></div>
+          <div class="col-8">${t("totalFromShops")} (incl. breaker penalties):</div>
+          <div class="col-4 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(grandTotal)}</div>
           
           <div class="col-12"><hr class="my-1"></div>
           
-          <div class="col-8"><strong>${t("penaltyCalculation")}:</strong></div>
-          <div class="col-4 text-end"><strong class="text-danger">${APP_CONFIG.currencySymbol} ${formatCurrency(penalty)}</strong></div>
+          <div class="col-8"><strong>${t("remainingGap") || "Remaining Gap"}:</strong></div>
+          <div class="col-4 text-end"><strong class="text-warning">${APP_CONFIG.currencySymbol} ${formatCurrency(remainingPenalty)}</strong></div>
         </div>
         <div class="mt-2 small text-muted">
-          <i class="bi bi-info-circle"></i> ${t("penaltyExplanation")}
+          <i class="bi bi-info-circle"></i> ${t("remainingGapExplanation") || "This is the remaining difference after breaker shops paid their penalties. This amount is due to innocent shops using electricity at high CEB rates."}
         </div>
       </div>
     `;
-  } else {
+  } else if (isAboveThreshold && hasBreaker) {
+    // Breakers covered everything
+    outputHTML += `
+      <div class="alert alert-success mt-3">
+        <i class="bi bi-check-circle-fill"></i> <strong>${t("breakersCoveredPenalty") || "Breaker Shops Covered the Penalty"}</strong>
+        <div class="small text-muted mt-1">
+          ${t("breakerPaidExtra") || "Threshold breaker shops paid"}: ${APP_CONFIG.currencySymbol} ${formatCurrency(totalBreakerPenalty)} ${t("extraForCausingHighRate") || "extra for causing high rate charges."}
+        </div>
+      </div>
+    `;
+  } else if (!isAboveThreshold) {
     outputHTML += `
       <div class="alert alert-success mt-3">
         <i class="bi bi-check-circle-fill"></i> <strong>${t("noPenalty")}</strong>
         <div class="small text-muted mt-1">
           ${t("totalUnits")}: ${formatCurrency(totalUnits)} ≤ ${t("usageThreshold")}: ${formatCurrency(threshold)}
+        </div>
+      </div>
+    `;
+  } else {
+    // Above threshold but no breaker (collective breach)
+    outputHTML += `
+      <div class="alert alert-danger mt-3">
+        <h5><i class="bi bi-exclamation-triangle-fill"></i> ${t("collectiveBreach") || "Collective Threshold Breach"}</h5>
+        <div class="row g-2 small">
+          <div class="col-8">${t("cebTotalBill")}:</div>
+          <div class="col-4 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(cebTotalBill)}</div>
+          
+          <div class="col-8">${t("totalFromShops")}:</div>
+          <div class="col-4 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(grandTotal)}</div>
+          
+          <div class="col-12"><hr class="my-1"></div>
+          
+          <div class="col-8"><strong>${t("buildingOwnerPenalty")}:</strong></div>
+          <div class="col-4 text-end"><strong class="text-danger">${APP_CONFIG.currencySymbol} ${formatCurrency(penalty)}</strong></div>
+        </div>
+        <div class="mt-2 small text-muted">
+          <i class="bi bi-info-circle"></i> ${t("collectiveBreachExplanation") || "No single shop exceeded the threshold. The collective usage caused the high rate. Building owner absorbs the penalty."}
         </div>
       </div>
     `;
@@ -528,18 +612,18 @@ const calculate = () => {
       <i class="bi bi-calculator"></i> 
       <strong>Verification:</strong>
       <div class="row g-1 small mt-2">
-        <div class="col-8">${t("totalFromShops")}:</div>
+        <div class="col-8">${t("totalFromShops")}${hasBreaker && isAboveThreshold ? ' (incl. breaker penalties)' : ''}:</div>
         <div class="col-4 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(totalCollected)}</div>
         
-        ${isAboveThreshold && penalty > 0 ? `
-        <div class="col-8">${t("buildingOwnerPenalty")}:</div>
-        <div class="col-4 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(penalty)}</div>
+        ${isAboveThreshold && remainingPenalty > 0 ? `
+        <div class="col-8">${t("buildingOwnerPenalty")} (${t("remainingGap") || "Remaining Gap"}):</div>
+        <div class="col-4 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(remainingPenalty)}</div>
         ` : ''}
         
         <div class="col-12"><hr class="my-1"></div>
         
         <div class="col-8"><strong>${t("grandTotal")}:</strong></div>
-        <div class="col-4 text-end"><strong>${APP_CONFIG.currencySymbol} ${formatCurrency(totalCollected + penalty)}</strong></div>
+        <div class="col-4 text-end"><strong>${APP_CONFIG.currencySymbol} ${formatCurrency(totalCollected + remainingPenalty)}</strong></div>
         
         <div class="col-8">${t("cebTotalBill")}:</div>
         <div class="col-4 text-end">${APP_CONFIG.currencySymbol} ${formatCurrency(cebTotalBill)}</div>
